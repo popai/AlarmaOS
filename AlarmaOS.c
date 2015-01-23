@@ -1,0 +1,383 @@
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+////    main.c
+////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////
+
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+
+#include <avr/io.h>
+#include <util/delay.h>
+
+/* Scheduler include files. */
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "semphr.h"
+
+/* serial interface include file. */
+#include "serial.h"
+
+/* project interface include file. */
+#include "pinDef.h"
+#include "user_input.h"
+#include "password_manager.h"
+
+#define	DEBUG	1
+
+#include "lib/keypad/keypad.h"
+#include "lib/eeprom/eeprom.h"
+#include "lib/timer/timer.h"
+#ifdef portHD44780_LCD
+/* LCD (Freetronics 16x2) interface include file. */
+#include "hd44780.h"
+#endif
+
+/*-----------------------------------------------------------*/
+/* Create a handle for the serial port. */
+extern xComPortHandle xSerialPort;
+
+static uint16_t pass_save = 255;
+static uint16_t password = 255;
+
+static void TasKeypad(void *pvParameters); // keibord imput
+static void TaskSenzorL(void *pvParameters); // senzor intarziat
+//static void TaskSenzorR(void *pvParameters); // senzor instant
+static void TaskAlarma(void *pvParameters); // actiouni alarma
+
+void SystemInit();
+
+static TaskHandle_t xTasKeypad = NULL, xTaskAlarma = NULL;
+
+/*-----------------------------------------------------------*/
+
+/* Main program loop */
+int main(void) __attribute__((OS_main));
+
+int main(void)
+{
+
+	SystemInit();
+
+	xTaskCreate( TasKeypad, (const portCHAR *)"Keypad" // citire tastatura
+			, 256// Tested 9 free @ 208
+			, NULL, 3, &xTasKeypad);
+	// */
+
+	xTaskCreate( TaskSenzorL, (const portCHAR *)"SenzorL"// senzor lent
+			, 256// Tested 9 free @ 208
+			, NULL, 3, NULL);
+	// */
+
+	xTaskCreate( TaskAlarma, (const portCHAR *)"Alarma"// senzor lent
+			, 256// Tested 9 free @ 208
+			, NULL, 3, &xTaskAlarma);
+	// */
+
+	avrSerialPrintf_P(PSTR("\r\n\nFree Heap Size: %u\r\n"),
+			xPortGetFreeHeapSize()); // needs heap_1 or heap_2 for this function to succeed.
+
+	vTaskStartScheduler();
+
+	avrSerialPrint_P(PSTR("\r\n\n\nGoodbye... no space for idle task!\r\n")); // Doh, so we're dead...
+
+#ifdef portHD44780_LCD
+	lcd_Print_P(PSTR("DEAD BEEF!"));
+#endif
+}
+
+/*-----------------------------------------------------------*/
+
+static void TasKeypad(void *pvParameters) // Main Red LED Flash
+{
+	(void) pvParameters;
+	;
+	TickType_t xLastWakeTime;
+	/* The xLastWakeTime variable needs to be initialised with the current tick
+	 count.  Note that this is the only time we access this variable.  From this
+	 point on xLastWakeTime is managed automatically by the vTaskDelayUntil()
+	 API function. */
+	xLastWakeTime = xTaskGetTickCount();
+
+	//DDRD |= _BV(DDD3);
+	uint8_t keyCode = 255;
+	uint8_t i = 0;
+	uint8_t key[] = "####";
+
+	while (1)
+	{
+
+		vTaskDelayUntil(&xLastWakeTime, (200 / portTICK_PERIOD_MS));
+
+		keyCode = GetKeyPressed(); //Get the keycode of pressed key
+		if (keyCode == 255)
+			continue;
+
+		if (keyCode == 11)
+		{
+			i = 0;
+			xSerialPrint_P(PSTR("Anulat!\r\n"));
+		}
+		else if (i < 4)
+		{
+			key[i] = keyCode;
+			xSerialPrintf_P(PSTR("key[%i] = %i \r\n"), i, keyCode);
+			++i;
+		}
+
+		if (i == 4 && keyCode == 10)
+		{
+
+			i = 0;
+			password = (((1000 * key[0]) + (100 * key[1]) + (10 * key[2])
+					+ key[3])); //save the password in 16 bit integer
+#ifdef DEBUG
+			xSerialPrintf_P(PSTR("parola = %i \r\n"), password);
+#endif
+
+			//OSGiveSema(&sema_pass);
+			//OSEnqueue(password, &pass);
+			xTaskNotifyGive( xTaskAlarma);
+		}
+
+		//xSerialPrint_P(PSTR("\r\n\n\nTasck Red LEd!\r\n"));
+		//PORTD |=  _BV(PORTD3);       // main (red IO_B7) LED on. EtherMega LED on
+		//vTaskDelayUntil( &xLastWakeTime, ( 100 / portTICK_PERIOD_MS ) );
+
+		//PORTD &= ~_BV(PORTD3);       // main (red IO_B7) LED off. EtherMega LED off
+		//vTaskDelayUntil( &xLastWakeTime, ( 400 / portTICK_PERIOD_MS ) );
+
+//		xSerialPrintf_P(PSTR("RedLED HighWater @ %u\r\n"), uxTaskGetStackHighWaterMark(NULL));
+	}
+}
+
+/*-----------------------------------------------------------*/
+static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
+{
+	(void) pvParameters;
+	;
+	TickType_t xLastWakeTime;
+	/* The xLastWakeTime variable needs to be initialised with the current tick
+	 count.  Note that this is the only time we access this variable.  From this
+	 point on xLastWakeTime is managed automatically by the vTaskDelayUntil()
+	 API function. */
+	xLastWakeTime = xTaskGetTickCount();
+
+	DDRD |= _BV(DDD4);
+
+	while (1)
+	{
+		PORTD |= _BV(PORTD4); // main (red PB5) LED on. Arduino LED on
+		vTaskDelayUntil(&xLastWakeTime, (10 / portTICK_PERIOD_MS));
+
+#ifdef portHD44780_LCD
+		lcd_Locate (0, 0);
+		lcd_Printf_P(PSTR("Sys Tick:%7lu"), time(NULL));
+		lcd_Locate (1, 0);
+		lcd_Printf_P(PSTR("Min Heap:%7u"), xPortGetMinimumEverFreeHeapSize() ); // needs heap_4 for this function to succeed.
+#endif // portHD44780_LCD
+		PORTD &= ~_BV(PORTD4); // main (red PB5) LED off. Arduino LED off
+		vTaskDelayUntil(&xLastWakeTime, (40 / portTICK_PERIOD_MS));
+
+//		xSerialPrintf_P(PSTR("GreenLED HighWater @ %u\r\n"), uxTaskGetStackHighWaterMark(NULL));
+	}
+}
+
+/*-----------------------------------------------------------*/
+static void TaskAlarma(void *pvParameters) // Main Green LED Flash
+{
+	(void) pvParameters;
+	;
+	TickType_t xLastWakeTime;
+	/* The xLastWakeTime variable needs to be initialised with the current tick
+	 count.  Note that this is the only time we access this variable.  From this
+	 point on xLastWakeTime is managed automatically by the vTaskDelayUntil()
+	 API function. */
+	xLastWakeTime = xTaskGetTickCount();
+
+	//DDRD |= _BV(DDD4);
+
+	uint8_t gresit = 0;
+
+	while (1)
+	{
+		//password = OSDequeue(&pass);
+
+		//Match Password
+		vTaskDelayUntil(&xLastWakeTime, (40 / portTICK_PERIOD_MS));
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+		contor_s = 0;
+		//xSerialPrintf_P(PSTR("parola = %i \r\n"), password);
+		//time_sst = GetSeconds();
+
+		if (password == pass_save)
+		{
+#ifdef DEBUG
+			xSerialPrint_P(PSTR("Parola OK! \r\n"));
+#endif
+			Buzer_PassOK();
+			if (GetArmat())
+			{
+				ALARMOff();
+				ARMOff();
+#ifdef DEBUG
+				xSerialPrint_P(PSTR("Dezarmat! \r\n"));
+#endif
+				password = 255;
+			}
+			else
+			{
+#ifdef DEBUG
+				xSerialPrint_P(PSTR("Armeaza! \r\n"));
+#endif
+				//while (GetSeconds() - time_sst < 15);
+				//vTaskDelayUntil( &xLastWakeTime, ( 15000 / portTICK_PERIOD_MS ) );
+				while (contor_s < 15) //weit 10s
+				{
+					PORTC |= (1 << PC3); //buzer on
+					_delay_ms(50);
+					PORTC &= ~(1 << PC3); //buzer off
+					_delay_ms(90);
+				}
+				//OSGiveSema(&sema_senzor);
+				ALARMOff();
+				//wdt_reset();
+				ARMOn();
+				password = 255;
+			}
+
+		}
+		else if (password == 0)
+		{
+
+			//If user enters 0000 as password it
+			//indicates a request to change password
+
+#ifdef DEBUG
+			xSerialPrint_P(PSTR("Schimba parola \r\n"));
+#endif
+			//while (GetSeconds() - time_sst < 10)
+			//OSSleep(200);
+			//OSTakeSema(&sema_pass);
+			ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+			if (password == pass_save)
+			{
+				//Allowed to change password
+				//password = 1234;
+#ifdef DEBUG
+				xSerialPrint_P(PSTR("parola noua: \r\n"));
+#endif
+
+				ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+				if (password != 255 && password != 0)
+				{
+					WritePassToEEPROM(password);
+
+					Buzer_PassOK();
+					pass_save = password;
+#ifdef DEBUG
+					xSerialPrint_P(PSTR("Parola schimbata \r\n"));
+#endif
+				}
+				password = 255;
+
+			}
+			else
+			{
+				//Not Allowed to change password
+				Buzer_PassNotOK();
+			}
+
+		}
+		else if (password != 255)
+		{
+			++gresit;
+			Buzer_PassNotOK();
+			if(gresit == 4 && GetArmat() )
+			{
+				ARMOn();
+				ALARMOn();
+				gresit = 0;
+			}
+		}
+
+		/*
+		 PORTD |=  _BV(PORTD4);       // main (red PB5) LED on. Arduino LED on
+		 vTaskDelayUntil( &xLastWakeTime, ( 10 / portTICK_PERIOD_MS ) );
+
+		 #ifdef portHD44780_LCD
+		 lcd_Locate (0, 0);
+		 lcd_Printf_P(PSTR("Sys Tick:%7lu"), time(NULL));
+		 lcd_Locate (1, 0);
+		 lcd_Printf_P(PSTR("Min Heap:%7u"), xPortGetMinimumEverFreeHeapSize() ); // needs heap_4 for this function to succeed.
+		 #endif // portHD44780_LCD
+
+		 PORTD &= ~_BV(PORTD4);       // main (red PB5) LED off. Arduino LED off
+		 vTaskDelayUntil( &xLastWakeTime, ( 40 / portTICK_PERIOD_MS ) );
+
+		 //		xSerialPrintf_P(PSTR("GreenLED HighWater @ %u\r\n"), uxTaskGetStackHighWaterMark(NULL)); */
+	}
+}
+
+/*-----------------------------------------------------------*/
+
+void SystemInit()
+{
+	//wdt_disable();
+	// turn on the serial port for debugging or for other USART reasons.
+	xSerialPort = xSerialPortInitMinimal(USART0, 115200, portSERIAL_BUFFER_TX,
+			portSERIAL_BUFFER_RX); //  serial port: WantedBaud, TxQueueLength, RxQueueLength (8n1)
+
+	avrSerialPrint_P(PSTR("\r\n\n\nHello World!\r\n")); // Ok, so we're alive...
+	pass_save = ReadPassFromEEPROM();
+#ifdef	portHD44780_LCD
+	lcd_Init();
+
+	lcd_Print_P(PSTR("Hello World!"));
+	lcd_Locate (0, 0);
+#endif
+
+	pinSetUp();
+	_delay_ms(20);
+	Timer1_Init();
+	if ((PINC & (1 << PC4)) == 0)
+	{
+#ifdef DEBUG
+		avrSerialPrint_P(PSTR("Scriu parola implicita 1234"));
+#endif
+		WritePassToEEPROM(1234);
+	}
+
+	ARMLED_PORT &= (~(1 << ARMLED_PIN));
+	ALARMOff();
+	//if(eeprom_read_byte((uint8_t*)3))
+	ARMOn();
+	//_delay_ms(50);
+
+	//Check if the EEPROM has a valid password or is blank
+	if (ReadPassFromEEPROM() == 25755)
+	{
+		//Password is blank so store a default password
+#ifdef DEBUG
+		avrSerialPrint_P(PSTR("Scriu parola implicita 1234"));
+#endif
+		WritePassToEEPROM(1234);
+	}
+
+	//wdt_enable(WDTO_1S);
+}
+
+void vApplicationStackOverflowHook(TaskHandle_t xTask, portCHAR *pcTaskName)
+{
+
+	DDRB |= _BV(DDB4);
+	PORTB |= _BV(PORTB4); // main (red PB4) LED on. Mega main LED on and die.
+	while (1)
+		;
+}
+
+/*-----------------------------------------------------------*/
+
