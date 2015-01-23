@@ -44,7 +44,7 @@ static uint16_t password = 255;
 
 static void TasKeypad(void *pvParameters); // keibord imput
 static void TaskSenzorL(void *pvParameters); // senzor intarziat
-//static void TaskSenzorR(void *pvParameters); // senzor instant
+static void TaskSenzorR(void *pvParameters); // senzor instant
 static void TaskAlarma(void *pvParameters); // actiouni alarma
 
 void SystemInit();
@@ -62,18 +62,21 @@ int main(void)
 	SystemInit();
 
 	xTaskCreate( TasKeypad, (const portCHAR *)"Keypad" // citire tastatura
-			, 256// Tested 9 free @ 208
+			, 150// Tested 9 free @ 208
 			, NULL, 3, &xTasKeypad);
 	// */
 
-	xTaskCreate( TaskSenzorL, (const portCHAR *)"SenzorL"// senzor lent
-			, 256// Tested 9 free @ 208
+	xTaskCreate( TaskAlarma, (const portCHAR *)"Alarma"// senzor lent
+			, 150// Tested 9 free @ 208
+			, NULL, 3, &xTaskAlarma);
+	// */
+	xTaskCreate( TaskSenzorR, (const portCHAR *)"SenzorL"// senzor lent
+			, 150// Tested 9 free @ 208
 			, NULL, 3, NULL);
 	// */
-
-	xTaskCreate( TaskAlarma, (const portCHAR *)"Alarma"// senzor lent
-			, 256// Tested 9 free @ 208
-			, NULL, 3, &xTaskAlarma);
+	xTaskCreate( TaskSenzorL, (const portCHAR *)"SenzorL"// senzor lent
+			, 150// Tested 9 free @ 208
+			, NULL, 3, NULL);
 	// */
 
 	avrSerialPrintf_P(PSTR("\r\n\nFree Heap Size: %u\r\n"),
@@ -150,38 +153,6 @@ static void TasKeypad(void *pvParameters) // Main Red LED Flash
 		//vTaskDelayUntil( &xLastWakeTime, ( 400 / portTICK_PERIOD_MS ) );
 
 //		xSerialPrintf_P(PSTR("RedLED HighWater @ %u\r\n"), uxTaskGetStackHighWaterMark(NULL));
-	}
-}
-
-/*-----------------------------------------------------------*/
-static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
-{
-	(void) pvParameters;
-	;
-	TickType_t xLastWakeTime;
-	/* The xLastWakeTime variable needs to be initialised with the current tick
-	 count.  Note that this is the only time we access this variable.  From this
-	 point on xLastWakeTime is managed automatically by the vTaskDelayUntil()
-	 API function. */
-	xLastWakeTime = xTaskGetTickCount();
-
-	DDRD |= _BV(DDD4);
-
-	while (1)
-	{
-		PORTD |= _BV(PORTD4); // main (red PB5) LED on. Arduino LED on
-		vTaskDelayUntil(&xLastWakeTime, (10 / portTICK_PERIOD_MS));
-
-#ifdef portHD44780_LCD
-		lcd_Locate (0, 0);
-		lcd_Printf_P(PSTR("Sys Tick:%7lu"), time(NULL));
-		lcd_Locate (1, 0);
-		lcd_Printf_P(PSTR("Min Heap:%7u"), xPortGetMinimumEverFreeHeapSize() ); // needs heap_4 for this function to succeed.
-#endif // portHD44780_LCD
-		PORTD &= ~_BV(PORTD4); // main (red PB5) LED off. Arduino LED off
-		vTaskDelayUntil(&xLastWakeTime, (40 / portTICK_PERIOD_MS));
-
-//		xSerialPrintf_P(PSTR("GreenLED HighWater @ %u\r\n"), uxTaskGetStackHighWaterMark(NULL));
 	}
 }
 
@@ -323,7 +294,105 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 }
 
 /*-----------------------------------------------------------*/
+static void TaskSenzorR(void *pvParameters) // Main Green LED Flash
+{
+	(void) pvParameters;
+	;
+	TickType_t xLastWakeTime;
+	/* The xLastWakeTime variable needs to be initialised with the current tick
+	 count.  Note that this is the only time we access this variable.  From this
+	 point on xLastWakeTime is managed automatically by the vTaskDelayUntil()
+	 API function. */
+	xLastWakeTime = xTaskGetTickCount();
+	//uint8_t time_mst = 0;
+	//DDRD |= _BV(DDD4);
 
+	while (1)
+	{
+		vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
+		if(GetArmat() && !GetAlarm())
+		{
+			if(((PIND & (1 << PD5)) == 1) || ((PIND & (1 << PD4)) == 1)||((PIND & (1 << PD3)) ==1 ))
+			{
+				xSerialPrint_P(PSTR("Senzor rapid activat \r\n"));
+				//time_mst = GetMinutes();
+				contor_m = 0;
+				ALARMOn();
+			}
+		}
+
+		if(contor_m == 2)
+			ALARMOff();
+
+#ifdef portHD44780_LCD
+		lcd_Locate (0, 0);
+		lcd_Printf_P(PSTR("Sys Tick:%7lu"), time(NULL));
+		lcd_Locate (1, 0);
+		lcd_Printf_P(PSTR("Min Heap:%7u"), xPortGetMinimumEverFreeHeapSize() ); // needs heap_4 for this function to succeed.
+#endif // portHD44780_LCD
+
+//		xSerialPrintf_P(PSTR("Senzor rapid HighWater @ %u\r\n"), uxTaskGetStackHighWaterMark(NULL));
+	}
+}
+
+/*-----------------------------------------------------------*/
+static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
+{
+	(void) pvParameters;
+	;
+	TickType_t xLastWakeTime;
+	/* The xLastWakeTime variable needs to be initialised with the current tick
+	 count.  Note that this is the only time we access this variable.  From this
+	 point on xLastWakeTime is managed automatically by the vTaskDelayUntil()
+	 API function. */
+	xLastWakeTime = xTaskGetTickCount();
+
+	DDRD |= _BV(DDD4);
+
+	while (1)
+	{
+		vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
+		if(GetArmat() && !GetAlarm())
+		{
+
+			if (!(SENZOR_PINS & (1 << SENZOR_PIN))) //(PIND & (1 << PD2)) == 1)
+			{
+				xSerialPrint_P(PSTR("Senzor intarziat activat \r\n"));
+				//contor_s = 0;
+				for (uint8_t n = 0; n < 15; ++n)
+				{
+					PORTC |= (1 << PC3); //buzer on
+					_delay_ms(50);
+					PORTC &= ~(1 << PC3); //buzer off
+					_delay_ms(90);
+					//wdt_reset();
+				}
+				ALARMOn();
+				contor_m = 0;
+			}
+		}
+
+		if(contor_m == 2)
+			ALARMOff();
+
+		PORTD |= _BV(PORTD4); // main (red PB5) LED on. Arduino LED on
+		vTaskDelayUntil(&xLastWakeTime, (20 / portTICK_PERIOD_MS));
+
+#ifdef portHD44780_LCD
+		lcd_Locate (0, 0);
+		lcd_Printf_P(PSTR("Sys Tick:%7lu"), time(NULL));
+		lcd_Locate (1, 0);
+		lcd_Printf_P(PSTR("Min Heap:%7u"), xPortGetMinimumEverFreeHeapSize() ); // needs heap_4 for this function to succeed.
+#endif // portHD44780_LCD
+		PORTD &= ~_BV(PORTD4); // main (red PB5) LED off. Arduino LED off
+		vTaskDelayUntil(&xLastWakeTime, (40 / portTICK_PERIOD_MS));
+
+//		xSerialPrintf_P(PSTR("GreenLED HighWater @ %u\r\n"), uxTaskGetStackHighWaterMark(NULL));
+	}
+}
+
+
+/*-----------------------------------------------------------*/
 void SystemInit()
 {
 	//wdt_disable();
