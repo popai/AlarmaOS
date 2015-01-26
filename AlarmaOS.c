@@ -280,10 +280,11 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 			++gresit;
 			Buzer_PassNotOK();
 			//playFrequency( 2500, 500); // notOK tone
-			if (gresit == 4 && GetArmat())
+			if ((gresit == 4) && GetArmat())
 			{
 				ARMOn();
 				ALARMOn();
+				xSerialPrint_P(PSTR("Sirena pornita \r\n"));
 				gresit = 0;
 			}
 		}
@@ -319,15 +320,15 @@ static void TaskSenzorR(void *pvParameters) // Main Green LED Flash
 	xLastWakeTime = xTaskGetTickCount();
 	uint8_t senzor_pull = 0;
 	//uint8_t time_mst = 0;
-	//DDRD |= _BV(DDD4);
+	//DDRD |= ~_BV(DDD4);
 
 	while (1)
 	{
 		vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
 		if (GetArmat() && !GetAlarm())
 		{
-			if ((PIND & (1 << PD5)) || (PIND & (1 << PD4))
-					|| (PIND & (1 << PD3)))
+			if ((PIND & (1 << PD3)) || (PIND & (1 << PD4))
+					|| (PIND & (1 << PD5)))
 			{
 				xSerialPrint_P(PSTR("Senzor rapid activat \r\n"));
 				//time_mst = GetMinutes();
@@ -367,7 +368,7 @@ static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
 	 API function. */
 	xLastWakeTime = xTaskGetTickCount();
 
-	DDRD |= _BV(DDD4);
+	//DDRD |= _BV(DDD4);
 	uint8_t senzor_pull = 0;
 	while (1)
 	{
@@ -404,6 +405,7 @@ static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
 			xSerialPrint_P(PSTR("Sirena oprita \r\n"));
 		}
 
+		//Lipsa tensiune alimentare
 		if (((PIND & (1 << PD6)) == 0) && (contor_s % 8 == 0)) //Lipsa tensiune alimentare
 		{
 			BUZER_PORT |= (1 << BUZER_PIN);

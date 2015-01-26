@@ -30,7 +30,7 @@ uint8_t alarm = OFF;
  */
 void ALARMOn()
 {
-	if (armat)
+	if (armat && (!alarm))
 	{
 		ALARM_PORT &= (~(1 << ALARM_PIN));
 		alarm = ON;
