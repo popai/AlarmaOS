@@ -17,8 +17,8 @@ void pinSetUp()
 	PORTB = 0b11001111;
 	//PORTB |= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3);
 
-	DDRD  = 0b11011010; // PD2 (INT0) senzor alarma
-	PORTD = 0b00100101;
+	DDRD  = 0b10000010; // PD2 senzor intarziat, PD4, PD4, PD5 senzori rapizi
+	PORTD = 0b01111101;
 
 	/*
 	//setup External Interrupt INT0

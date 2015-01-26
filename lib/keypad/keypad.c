@@ -11,6 +11,7 @@
 #include <util/delay.h>
 
 #include "keypad.h"
+//#include "../timer/timer.h"
 
 /************************************************
  KEYPAD CONNECTIONS
@@ -18,6 +19,7 @@
  PB0 ----1---2---3---
  PB1 ----4---5---6---
  PB2 ----7---8---9---
+ PB3 ----4---5---6---
  PB3 ----*---0---#---
  PB AR INPUT AND PC AR OUTPUT
  *************************************************/
@@ -41,14 +43,16 @@ uint8_t GetKeyPressed()
 		PORTC |= (1 << PC3); //buzer on
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
+		_delay_ms(50);
 		return 10;
 	}
 
 	if (!(PINB & (1 << PB2)))
 	{
-		PORTC |= (1 << PC3);
+		PORTC |= (1 << PC3); //buzer on
 		_delay_ms(50);
-		PORTC &= ~(1 << PC3);
+		PORTC &= ~(1 << PC3); //buzer off
+		_delay_ms(50);
 		return 7;
 	}
 
@@ -57,6 +61,7 @@ uint8_t GetKeyPressed()
 		PORTC |= (1 << PC3); //buzer on
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
+		_delay_ms(50);
 		return 4;
 	}
 
@@ -65,6 +70,7 @@ uint8_t GetKeyPressed()
 		PORTC |= (1 << PC3); //buzer on
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
+		_delay_ms(50);
 		return 1;
 	}
 
@@ -76,6 +82,7 @@ uint8_t GetKeyPressed()
 		PORTC |= (1 << PC3); //buzer on
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
+		_delay_ms(50);
 		return 0;
 	}
 
@@ -84,6 +91,7 @@ uint8_t GetKeyPressed()
 		PORTC |= (1 << PC3); //buzer on
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
+		_delay_ms(50);
 		return 8;
 	}
 
@@ -92,6 +100,7 @@ uint8_t GetKeyPressed()
 		PORTC |= (1 << PC3); //buzer on
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
+		_delay_ms(50);
 		return 5;
 	}
 	if (!(PINB & (1 << PB0)))
@@ -99,6 +108,7 @@ uint8_t GetKeyPressed()
 		PORTC |= (1 << PC3); //buzer on
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
+		_delay_ms(50);
 		return 2;
 	}
 
@@ -110,6 +120,7 @@ uint8_t GetKeyPressed()
 		PORTC |= (1 << PC3); //buzer on
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
+		_delay_ms(50);
 		return 11; //getkb = 11;
 	}
 	if (!(PINB & (1 << PB2)))
@@ -117,6 +128,7 @@ uint8_t GetKeyPressed()
 		PORTC |= (1 << PC3); //buzer on
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
+		_delay_ms(50);
 		return 9;
 	}
 	if (!(PINB & (1 << PB1)))
@@ -124,6 +136,7 @@ uint8_t GetKeyPressed()
 		PORTC |= (1 << PC3); //buzer on
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
+		_delay_ms(50);
 		return 6;
 	}
 	if (!(PINB & (1 << PB0)))
@@ -131,9 +144,37 @@ uint8_t GetKeyPressed()
 		PORTC |= (1 << PC3); //buzer on
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
+		_delay_ms(50);
 		return 3;
 	}
 
 	return 255; //Indicate No key pressed
 }
 
+/*
+ uint8_t GetKeyPressed()
+ {
+ uint8_t r,c;
+ UWriteString("key");
+
+ KEYPAD_PORT|= 0X0F;
+
+ for(c=0;c<4;c++)
+ {
+ KEYPAD_DDR &= ~(0XFF);
+
+ KEYPAD_DDR|=(0X80>>c);
+ for(r=0;r<3;r++)
+ {
+ if(!(KEYPAD_PIN & (0X08>>r)))
+ {
+ return (r*3+c);
+ UWriteString("pres?");
+ _delay_ms(10);
+ }
+ }
+ }
+ return 0XFF;//Indicate No key pressed
+ }
+
+ */

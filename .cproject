@@ -37,8 +37,8 @@
 									<listOptionValue builtIn="false" value="GCC_MEGA_AVR"/>
 								</option>
 								<option id="de.innot.avreclipse.compiler.option.optimize.other.1203864232" name="Other Optimization Flags" superClass="de.innot.avreclipse.compiler.option.optimize.other" value="-mcall-prologues -mrelax" valueType="string"/>
-								<option id="de.innot.avreclipse.compiler.option.optimize.packstruct.2079825089" superClass="de.innot.avreclipse.compiler.option.optimize.packstruct" value="false" valueType="boolean"/>
-								<option id="de.innot.avreclipse.compiler.option.optimize.shortenums.331208773" superClass="de.innot.avreclipse.compiler.option.optimize.shortenums" value="false" valueType="boolean"/>
+								<option id="de.innot.avreclipse.compiler.option.optimize.packstruct.2079825089" name="Pack structs (-fpack-struct)" superClass="de.innot.avreclipse.compiler.option.optimize.packstruct" value="false" valueType="boolean"/>
+								<option id="de.innot.avreclipse.compiler.option.optimize.shortenums.331208773" name="Short enums (-fshort-enums)" superClass="de.innot.avreclipse.compiler.option.optimize.shortenums" value="false" valueType="boolean"/>
 								<inputType id="de.innot.avreclipse.compiler.winavr.input.31421534" name="C Source Files" superClass="de.innot.avreclipse.compiler.winavr.input"/>
 							</tool>
 							<tool id="de.innot.avreclipse.tool.cppcompiler.app.release.1589023658" name="AVR C++ Compiler" superClass="de.innot.avreclipse.tool.cppcompiler.app.release">
@@ -67,6 +67,9 @@
 							<tool id="de.innot.avreclipse.tool.avrdude.app.release.676545669" name="AVRDude" superClass="de.innot.avreclipse.tool.avrdude.app.release"/>
 						</toolChain>
 					</folderInfo>
+					<sourceEntries>
+						<entry excluding="lib/buzzer" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
 				</configuration>
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>

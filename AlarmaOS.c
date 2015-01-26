@@ -30,6 +30,7 @@
 #include "lib/keypad/keypad.h"
 #include "lib/eeprom/eeprom.h"
 #include "lib/timer/timer.h"
+
 // Buzzer include file
 #include "lib/buzzer/Buzzer.h"
 
@@ -47,10 +48,9 @@ static uint16_t pass_save = 255;
 static uint16_t password = 255;
 
 /* Buzzer Variables */
-volatile uint8_t buzzerFinished;	// flag: 0 while playing
+volatile uint8_t buzzerFinished; // flag: 0 while playing
 const int8_t *buzzerSequence;
 uint8_t buzzerInitialized;
-
 
 static void TasKeypad(void *pvParameters); // keibord imput
 static void TaskSenzorL(void *pvParameters); // senzor intarziat
@@ -198,8 +198,8 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 #ifdef DEBUG
 			xSerialPrint_P(PSTR("Parola OK! \r\n"));
 #endif
-			//Buzer_PassOK();
-			playFrequency( 523, 150); // ok tone
+			Buzer_PassOK();
+			//playFrequency( 523, 150); // ok tone
 			if (GetArmat())
 			{
 				ALARMOff();
@@ -217,13 +217,13 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 				//while (GetSeconds() - time_sst < 15);
 				//vTaskDelayUntil( &xLastWakeTime, ( 15000 / portTICK_PERIOD_MS ) );
 				while (contor_s < 15) //weit 15s
-					playFrequency( 150, 50); // armare tone
-				/*{
+				{
 					PORTC |= (1 << PC3); //buzer on
 					_delay_ms(50);
 					PORTC &= ~(1 << PC3); //buzer off
 					_delay_ms(90);
-				}*/
+				}
+				//playFrequency( 150, 50); // armare tone
 				//OSGiveSema(&sema_senzor);
 				ALARMOff();
 				//wdt_reset();
@@ -241,9 +241,7 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 #ifdef DEBUG
 			xSerialPrint_P(PSTR("Schimba parola \r\n"));
 #endif
-			//while (GetSeconds() - time_sst < 10)
-			//OSSleep(200);
-			//OSTakeSema(&sema_pass);
+
 			ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 			if (password == pass_save)
 			{
@@ -259,8 +257,8 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 				{
 					WritePassToEEPROM(password);
 
-					//Buzer_PassOK();
-					playFrequency( 523, 150); // ok tone
+					Buzer_PassOK();
+					//playFrequency( 523, 150); // ok tone
 					pass_save = password;
 #ifdef DEBUG
 					xSerialPrint_P(PSTR("Parola schimbata \r\n"));
@@ -272,16 +270,16 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 			else
 			{
 				//Not Allowed to change password
-				//Buzer_PassNotOK();
-				playFrequency( 2500, 500); // notOK tone
+				Buzer_PassNotOK();
+				//playFrequency( 2500, 500); // notOK tone
 			}
 
 		}
 		else if (password != 255)
 		{
 			++gresit;
-			//Buzer_PassNotOK();
-			playFrequency( 2500, 500); // notOK tone
+			Buzer_PassNotOK();
+			//playFrequency( 2500, 500); // notOK tone
 			if (gresit == 4 && GetArmat())
 			{
 				ARMOn();
@@ -319,6 +317,7 @@ static void TaskSenzorR(void *pvParameters) // Main Green LED Flash
 	 point on xLastWakeTime is managed automatically by the vTaskDelayUntil()
 	 API function. */
 	xLastWakeTime = xTaskGetTickCount();
+	uint8_t senzor_pull = 0;
 	//uint8_t time_mst = 0;
 	//DDRD |= _BV(DDD4);
 
@@ -327,20 +326,22 @@ static void TaskSenzorR(void *pvParameters) // Main Green LED Flash
 		vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
 		if (GetArmat() && !GetAlarm())
 		{
-			if (((PIND & (1 << PD5)) == 1) || ((PIND & (1 << PD4)) == 1)
-					|| ((PIND & (1 << PD3)) == 1))
+			if ((PIND & (1 << PD5)) || (PIND & (1 << PD4))
+					|| (PIND & (1 << PD3)))
 			{
 				xSerialPrint_P(PSTR("Senzor rapid activat \r\n"));
 				//time_mst = GetMinutes();
 				contor_m = 0;
+				senzor_pull = 1;
 				ALARMOn();
 				xSerialPrint_P(PSTR("Sirena pornita \r\n"));
 			}
 		}
 
-		if (contor_m == 2)
+		if (contor_m == 2 && senzor_pull)
 		{
 			ALARMOff();
+			senzor_pull = 0;
 			xSerialPrint_P(PSTR("Sirena oprita \r\n"));
 		}
 
@@ -367,25 +368,26 @@ static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
 	xLastWakeTime = xTaskGetTickCount();
 
 	DDRD |= _BV(DDD4);
-
+	uint8_t senzor_pull = 0;
 	while (1)
 	{
 		vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
 		if (GetArmat() && !GetAlarm())
 		{
 
-			if (!(SENZOR_PINS & (1 << SENZOR_PIN))) //(PIND & (1 << PD2)) == 1)
+			if ((SENZOR_PINS & (1 << SENZOR_PIN))) //(PIND & (1 << PD2)) == 1)
 			{
 				xSerialPrint_P(PSTR("Senzor intarziat activat \r\n"));
 				contor_s = 0;
+				senzor_pull = 1;
 				for (uint8_t n = 0; n < 15; ++n)
 				{
 					PORTC |= (1 << PC3); //buzer on
-					_delay_ms(50);
+					vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
 					PORTC &= ~(1 << PC3); //buzer off
-					_delay_ms(90);
-					//wdt_reset();
+					vTaskDelayUntil(&xLastWakeTime, (90 / portTICK_PERIOD_MS));
 				}
+				//playFrequency( 1500, 50); // senzor activ tone
 				while (contor_s < 15)
 					vTaskDelayUntil(&xLastWakeTime, (500 / portTICK_PERIOD_MS));
 
@@ -395,14 +397,19 @@ static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
 			}
 		}
 
-		if (contor_m == 2)
+		if ((contor_m == 2) && senzor_pull)
 		{
 			ALARMOff();
+			senzor_pull = 0;
 			xSerialPrint_P(PSTR("Sirena oprita \r\n"));
 		}
 
-		PORTD |= _BV(PORTD4); // main (red PB5) LED on. Arduino LED on
-		vTaskDelayUntil(&xLastWakeTime, (20 / portTICK_PERIOD_MS));
+		if (((PIND & (1 << PD6)) == 0) && (contor_s % 8 == 0)) //Lipsa tensiune alimentare
+		{
+			BUZER_PORT |= (1 << BUZER_PIN);
+			vTaskDelayUntil(&xLastWakeTime, (20 / portTICK_PERIOD_MS));
+			BUZER_PORT &= (~(1 << BUZER_PIN));
+		}
 
 #ifdef portHD44780_LCD
 		lcd_Locate (0, 0);
@@ -410,8 +417,6 @@ static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
 		lcd_Locate (1, 0);
 		lcd_Printf_P(PSTR("Min Heap:%7u"), xPortGetMinimumEverFreeHeapSize() ); // needs heap_4 for this function to succeed.
 #endif // portHD44780_LCD
-		PORTD &= ~_BV(PORTD4); // main (red PB5) LED off. Arduino LED off
-		vTaskDelayUntil(&xLastWakeTime, (40 / portTICK_PERIOD_MS));
 
 //		xSerialPrintf_P(PSTR("GreenLED HighWater @ %u\r\n"), uxTaskGetStackHighWaterMark(NULL));
 	}
