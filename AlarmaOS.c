@@ -46,16 +46,13 @@ extern xComPortHandle xSerialPort;
 /*Alarm variables*/
 static uint16_t pass_save = 255;
 static uint16_t password = 255;
-
-/* Buzzer Variables */
-volatile uint8_t buzzerFinished; // flag: 0 while playing
-const int8_t *buzzerSequence;
-uint8_t buzzerInitialized;
+static uint8_t martor = 0;
 
 static void TasKeypad(void *pvParameters); // keibord imput
 static void TaskSenzorL(void *pvParameters); // senzor intarziat
 static void TaskSenzorR(void *pvParameters); // senzor instant
 static void TaskAlarma(void *pvParameters); // actiouni alarma
+static void TaskSemnale(void *pvParameters); // actiouni alarma
 
 void SystemInit();
 
@@ -72,20 +69,24 @@ int main(void)
 	SystemInit();
 
 	xTaskCreate( TasKeypad, (const portCHAR *)"Keypad" // citire tastatura
-			, 150// Tested 9 free @ 208
+			, 100// Tested 9 free @ 208
 			, NULL, 3, &xTasKeypad);
 	// */
 
 	xTaskCreate( TaskAlarma, (const portCHAR *)"Alarma"// senzor lent
-			, 150// Tested 9 free @ 208
+			, 100// Tested 9 free @ 208
 			, NULL, 3, &xTaskAlarma);
 	// */
 	xTaskCreate( TaskSenzorR, (const portCHAR *)"SenzorL"// senzor lent
-			, 150// Tested 9 free @ 208
+			, 100// Tested 9 free @ 208
 			, NULL, 3, NULL);
 	// */
 	xTaskCreate( TaskSenzorL, (const portCHAR *)"SenzorL"// senzor lent
-			, 150// Tested 9 free @ 208
+			, 100// Tested 9 free @ 208
+			, NULL, 3, NULL);
+	// */
+	xTaskCreate( TaskSemnale, (const portCHAR *)"SenzorL"// senzor lent
+			, 100// Tested 9 free @ 208
 			, NULL, 3, NULL);
 	// */
 
@@ -331,10 +332,10 @@ static void TaskSenzorR(void *pvParameters) // Main Green LED Flash
 					|| (PIND & (1 << PD5)))
 			{
 				xSerialPrint_P(PSTR("Senzor rapid activat \r\n"));
-				//time_mst = GetMinutes();
+				ALARMOn();
 				contor_m = 0;
 				senzor_pull = 1;
-				ALARMOn();
+				martor = 1;
 				xSerialPrint_P(PSTR("Sirena pornita \r\n"));
 			}
 		}
@@ -370,6 +371,7 @@ static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
 
 	//DDRD |= _BV(DDD4);
 	uint8_t senzor_pull = 0;
+
 	while (1)
 	{
 		vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
@@ -379,8 +381,7 @@ static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
 			if ((SENZOR_PINS & (1 << SENZOR_PIN))) //(PIND & (1 << PD2)) == 1)
 			{
 				xSerialPrint_P(PSTR("Senzor intarziat activat \r\n"));
-				contor_s = 0;
-				senzor_pull = 1;
+
 				for (uint8_t n = 0; n < 15; ++n)
 				{
 					PORTC |= (1 << PC3); //buzer on
@@ -389,11 +390,13 @@ static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
 					vTaskDelayUntil(&xLastWakeTime, (90 / portTICK_PERIOD_MS));
 				}
 				//playFrequency( 1500, 50); // senzor activ tone
-				while (contor_s < 15)
+				while (contor_s < 12)
 					vTaskDelayUntil(&xLastWakeTime, (500 / portTICK_PERIOD_MS));
 
 				ALARMOn();
 				contor_m = 0;
+				senzor_pull = 1;
+				martor = 2;
 				xSerialPrint_P(PSTR("Sirena pornita \r\n"));
 			}
 		}
@@ -405,22 +408,60 @@ static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
 			xSerialPrint_P(PSTR("Sirena oprita \r\n"));
 		}
 
-		//Lipsa tensiune alimentare
-		if (((PIND & (1 << PD6)) == 0) && (contor_s % 8 == 0)) //Lipsa tensiune alimentare
-		{
-			BUZER_PORT |= (1 << BUZER_PIN);
-			vTaskDelayUntil(&xLastWakeTime, (20 / portTICK_PERIOD_MS));
-			BUZER_PORT &= (~(1 << BUZER_PIN));
-		}
-
+		//daca sa pornit sirena ledul de armat trece pe intermitent
 #ifdef portHD44780_LCD
 		lcd_Locate (0, 0);
 		lcd_Printf_P(PSTR("Sys Tick:%7lu"), time(NULL));
 		lcd_Locate (1, 0);
 		lcd_Printf_P(PSTR("Min Heap:%7u"), xPortGetMinimumEverFreeHeapSize() ); // needs heap_4 for this function to succeed.
 #endif // portHD44780_LCD
-
 //		xSerialPrintf_P(PSTR("GreenLED HighWater @ %u\r\n"), uxTaskGetStackHighWaterMark(NULL));
+	}
+}
+
+void TaskSemnale(void *pvParameters) // actiouni alarma
+{
+	(void) pvParameters;
+	;
+	TickType_t xLastWakeTime;
+	/* The xLastWakeTime variable needs to be initialised with the current tick
+	 count.  Note that this is the only time we access this variable.  From this
+	 point on xLastWakeTime is managed automatically by the vTaskDelayUntil()
+	 API function. */
+	xLastWakeTime = xTaskGetTickCount();
+	while (1)
+	{
+		vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
+		//Lipsa tensiune alimentare
+		if (((PIND & (1 << PD6)) == 0) && (contor_s % 15 == 0)) //Lipsa tensiune alimentare
+		{
+			BUZER_PORT |= (1 << BUZER_PIN);
+			vTaskDelayUntil(&xLastWakeTime, (400 / portTICK_PERIOD_MS));
+			//_delay_ms(50);
+			BUZER_PORT &= (~(1 << BUZER_PIN));
+			vTaskDelayUntil(&xLastWakeTime, (600 / portTICK_PERIOD_MS));
+		}
+
+		//senzor activat = led armare trece pe intermitent
+		if ((martor == 1) && (contor_s % 2 == 0))
+		{
+			ARMLED_PORT &= ~(1 << ARMLED_PIN);
+			vTaskDelayUntil(&xLastWakeTime, (200 / portTICK_PERIOD_MS));
+			ARMLED_PORT |= (1 << ARMLED_PIN);
+
+		}
+		else if ((martor == 2) && (contor_s % 2 == 0))
+		{
+			ARMLED_PORT &= ~(1 << ARMLED_PIN);
+			vTaskDelayUntil(&xLastWakeTime, (400 / portTICK_PERIOD_MS));
+			ARMLED_PORT |= (1 << ARMLED_PIN);
+		}
+
+		if (!GetArmat())
+		{
+			martor = 0;
+			ARMLED_PORT &= ~(1 << ARMLED_PIN);
+		}
 	}
 }
 
