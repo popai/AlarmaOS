@@ -199,6 +199,7 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 #ifdef DEBUG
 			xSerialPrint_P(PSTR("Parola OK! \r\n"));
 #endif
+			gresit = 0;
 			Buzer_PassOK();
 			//playFrequency( 523, 150); // ok tone
 			if (GetArmat())
