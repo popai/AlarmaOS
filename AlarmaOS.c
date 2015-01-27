@@ -291,7 +291,6 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 			}
 		}
 
-
 		/*
 		 PORTD |=  _BV(PORTD4);       // main (red PB5) LED on. Arduino LED on
 		 vTaskDelayUntil( &xLastWakeTime, ( 10 / portTICK_PERIOD_MS ) );
@@ -384,7 +383,7 @@ static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
 			if ((SENZOR_PINS & (1 << SENZOR_PIN))) //(PIND & (1 << PD2)) == 1)
 			{
 				xSerialPrint_P(PSTR("Senzor intarziat activat \r\n"));
-
+				contor_s = 0;
 				for (uint8_t n = 0; n < 15; ++n)
 				{
 					PORTC |= (1 << PC3); //buzer on
@@ -402,6 +401,7 @@ static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
 				martor = 2;
 				xSerialPrint_P(PSTR("Sirena pornita \r\n"));
 			}
+
 		}
 
 		if ((contor_m == 2) && senzor_pull)
@@ -439,10 +439,10 @@ void TaskSemnale(void *pvParameters) // actiouni alarma
 		if (((PIND & (1 << PD6)) == 0) && (contor_s % 15 == 0)) //Lipsa tensiune alimentare
 		{
 			BUZER_PORT |= (1 << BUZER_PIN);
-			vTaskDelayUntil(&xLastWakeTime, (400 / portTICK_PERIOD_MS));
+			vTaskDelayUntil(&xLastWakeTime, (200 / portTICK_PERIOD_MS));
 			//_delay_ms(50);
 			BUZER_PORT &= (~(1 << BUZER_PIN));
-			vTaskDelayUntil(&xLastWakeTime, (600 / portTICK_PERIOD_MS));
+			vTaskDelayUntil(&xLastWakeTime, (100 / portTICK_PERIOD_MS));
 		}
 
 		//senzor activat = led armare trece pe intermitent
@@ -460,6 +460,7 @@ void TaskSemnale(void *pvParameters) // actiouni alarma
 			ARMLED_PORT |= (1 << ARMLED_PIN);
 		}
 
+		//opresc semnalul de zona activata
 		if (!GetArmat())
 		{
 			martor = 0;
@@ -471,6 +472,16 @@ void TaskSemnale(void *pvParameters) // actiouni alarma
 			ALARMOff();
 			xSerialPrint_P(PSTR("Sirena oprita \r\n"));
 		}
+
+		//semnal sonor usa deschisa
+		if((SENZOR_PINS & (1 << SENZOR_PIN)) && (contor_s % 4 == 0))
+		{
+			PORTC |= (1 << PC3); //buzer on
+			vTaskDelayUntil(&xLastWakeTime, (400 / portTICK_PERIOD_MS));
+			PORTC &= ~(1 << PC3); //buzer off
+			vTaskDelayUntil(&xLastWakeTime, (200 / portTICK_PERIOD_MS));
+		}
+
 
 	}
 }
