@@ -287,8 +287,10 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 				ALARMOn();
 				xSerialPrint_P(PSTR("Sirena pornita \r\n"));
 				gresit = 0;
+				contor_m = 0;
 			}
 		}
+
 
 		/*
 		 PORTD |=  _BV(PORTD4);       // main (red PB5) LED on. Arduino LED on
@@ -340,6 +342,7 @@ static void TaskSenzorR(void *pvParameters) // Main Green LED Flash
 			}
 		}
 
+		//opresc sirena dupa 2min
 		if (contor_m == 2 && senzor_pull)
 		{
 			ALARMOff();
@@ -462,6 +465,13 @@ void TaskSemnale(void *pvParameters) // actiouni alarma
 			martor = 0;
 			ARMLED_PORT &= ~(1 << ARMLED_PIN);
 		}
+		//opresc sirena dupa 2min
+		if (contor_m == 2 && GetAlarm())
+		{
+			ALARMOff();
+			xSerialPrint_P(PSTR("Sirena oprita \r\n"));
+		}
+
 	}
 }
 
