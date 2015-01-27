@@ -384,7 +384,7 @@ static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
 			if ((SENZOR_PINS & (1 << SENZOR_PIN))) //(PIND & (1 << PD2)) == 1)
 			{
 				xSerialPrint_P(PSTR("Senzor intarziat activat \r\n"));
-
+				contor_s = 0;
 				for (uint8_t n = 0; n < 15; ++n)
 				{
 					PORTC |= (1 << PC3); //buzer on
