@@ -1,8 +1,11 @@
-////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////
-////    main.c
-////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////
+/*
+ * AlarmaOS.c
+ *
+ * Create on: 28.01.2015
+ * 		Author: popai
+ *
+ */
+
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -73,11 +76,11 @@ int main(void)
 			, NULL, 3, &xTasKeypad);
 	// */
 
-	xTaskCreate( TaskAlarma, (const portCHAR *)"Alarma"// senzor lent
+	xTaskCreate( TaskAlarma, (const portCHAR *)"Alarma"// setari stare
 			, 100// Tested 9 free @ 208
 			, NULL, 3, &xTaskAlarma);
 	// */
-	xTaskCreate( TaskSenzorR, (const portCHAR *)"SenzorL"// senzor lent
+	xTaskCreate( TaskSenzorR, (const portCHAR *)"SenzorR"// senzor rapid
 			, 100// Tested 9 free @ 208
 			, NULL, 3, NULL);
 	// */
@@ -85,7 +88,7 @@ int main(void)
 			, 100// Tested 9 free @ 208
 			, NULL, 3, NULL);
 	// */
-	xTaskCreate( TaskSemnale, (const portCHAR *)"SenzorL"// senzor lent
+	xTaskCreate( TaskSemnale, (const portCHAR *)"Semnale"// Semnalizare stari
 			, 100// Tested 9 free @ 208
 			, NULL, 3, NULL);
 	// */
@@ -150,9 +153,6 @@ static void TasKeypad(void *pvParameters) // Main Red LED Flash
 #ifdef DEBUG
 			xSerialPrintf_P(PSTR("parola = %i \r\n"), password);
 #endif
-
-			//OSGiveSema(&sema_pass);
-			//OSEnqueue(password, &pass);
 			xTaskNotifyGive( xTaskAlarma);
 		}
 
@@ -218,12 +218,12 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 #endif
 				//while (GetSeconds() - time_sst < 15);
 				//vTaskDelayUntil( &xLastWakeTime, ( 15000 / portTICK_PERIOD_MS ) );
-				while (contor_s < 15) //weit 15s
+				while (contor_s < 30) //weit 15s
 				{
 					PORTC |= (1 << PC3); //buzer on
 					_delay_ms(50);
 					PORTC &= ~(1 << PC3); //buzer off
-					_delay_ms(90);
+					_delay_ms(500);
 				}
 				//playFrequency( 150, 50); // armare tone
 				//OSGiveSema(&sema_senzor);
@@ -436,7 +436,7 @@ void TaskSemnale(void *pvParameters) // actiouni alarma
 	while (1)
 	{
 		vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
-		//Lipsa tensiune alimentare
+		//semnal sonor lipsa tensiune alimentare
 		if (((PIND & (1 << PD6)) == 0) && (contor_s % 15 == 0)) //Lipsa tensiune alimentare
 		{
 			BUZER_PORT |= (1 << BUZER_PIN);
@@ -444,6 +444,15 @@ void TaskSemnale(void *pvParameters) // actiouni alarma
 			//_delay_ms(50);
 			BUZER_PORT &= (~(1 << BUZER_PIN));
 			vTaskDelayUntil(&xLastWakeTime, (100 / portTICK_PERIOD_MS));
+		}
+
+		//semnal sonor usa deschisa
+		if((SENZOR_PINS & (1 << SENZOR_PIN)) && (contor_s % 4 == 0))
+		{
+			PORTC |= (1 << PC3); //buzer on
+			vTaskDelayUntil(&xLastWakeTime, (300 / portTICK_PERIOD_MS));
+			PORTC &= ~(1 << PC3); //buzer off
+			vTaskDelayUntil(&xLastWakeTime, (600 / portTICK_PERIOD_MS));
 		}
 
 		//senzor activat = led armare trece pe intermitent
@@ -473,16 +482,6 @@ void TaskSemnale(void *pvParameters) // actiouni alarma
 			ALARMOff();
 			xSerialPrint_P(PSTR("Sirena oprita \r\n"));
 		}
-
-		//semnal sonor usa deschisa
-		if((SENZOR_PINS & (1 << SENZOR_PIN)) && (contor_s % 4 == 0))
-		{
-			PORTC |= (1 << PC3); //buzer on
-			vTaskDelayUntil(&xLastWakeTime, (400 / portTICK_PERIOD_MS));
-			PORTC &= ~(1 << PC3); //buzer off
-			vTaskDelayUntil(&xLastWakeTime, (200 / portTICK_PERIOD_MS));
-		}
-
 
 	}
 }
