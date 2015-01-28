@@ -28,12 +28,12 @@ uint8_t alarm = OFF;
  * and signal a led on bord
  * @param
  */
-void ALARMOn()
+void ALARMOff()
 {
-	if (armat && (!alarm))
+	if (armat)
 	{
+		alarm = OFF;
 		ALARM_PORT &= (~(1 << ALARM_PIN));
-		alarm = ON;
 	}
 }
 
@@ -42,10 +42,10 @@ void ALARMOn()
  *
  * @param none
  */
-void ALARMOff()
+void ALARMOn()
 {
+	alarm = ON;
 	ALARM_PORT |= (1 << ALARM_PIN);
-	alarm = OFF;
 
 }
 
