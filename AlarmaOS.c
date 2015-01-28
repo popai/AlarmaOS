@@ -6,7 +6,6 @@
  *
  */
 
-
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
@@ -433,6 +432,9 @@ void TaskSemnale(void *pvParameters) // actiouni alarma
 	 point on xLastWakeTime is managed automatically by the vTaskDelayUntil()
 	 API function. */
 	xLastWakeTime = xTaskGetTickCount();
+
+	uint8_t usa = 1;
+
 	while (1)
 	{
 		vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
@@ -447,13 +449,20 @@ void TaskSemnale(void *pvParameters) // actiouni alarma
 		}
 
 		//semnal sonor usa deschisa
-		if((SENZOR_PINS & (1 << SENZOR_PIN)) && (contor_s % 4 == 0))
+		if (SENZOR_PINS & (1 << SENZOR_PIN))
 		{
-			PORTC |= (1 << PC3); //buzer on
-			vTaskDelayUntil(&xLastWakeTime, (300 / portTICK_PERIOD_MS));
-			PORTC &= ~(1 << PC3); //buzer off
-			vTaskDelayUntil(&xLastWakeTime, (800 / portTICK_PERIOD_MS));
+			if (usa)
+			{
+				usa = 0;
+				PORTC |= (1 << PC3); //buzer on
+				vTaskDelayUntil(&xLastWakeTime, (300 / portTICK_PERIOD_MS));
+				PORTC &= ~(1 << PC3); //buzer off
+				vTaskDelayUntil(&xLastWakeTime, (200 / portTICK_PERIOD_MS));
+			}
+
 		}
+		else
+			usa = 1;
 
 		//senzor activat = led armare trece pe intermitent
 		if ((martor == 1) && (contor_s % 2 == 0))
