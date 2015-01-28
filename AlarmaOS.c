@@ -452,7 +452,7 @@ void TaskSemnale(void *pvParameters) // actiouni alarma
 			PORTC |= (1 << PC3); //buzer on
 			vTaskDelayUntil(&xLastWakeTime, (300 / portTICK_PERIOD_MS));
 			PORTC &= ~(1 << PC3); //buzer off
-			vTaskDelayUntil(&xLastWakeTime, (600 / portTICK_PERIOD_MS));
+			vTaskDelayUntil(&xLastWakeTime, (800 / portTICK_PERIOD_MS));
 		}
 
 		//senzor activat = led armare trece pe intermitent
