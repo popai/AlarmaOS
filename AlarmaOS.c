@@ -218,12 +218,12 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 #endif
 				//while (GetSeconds() - time_sst < 15);
 				//vTaskDelayUntil( &xLastWakeTime, ( 15000 / portTICK_PERIOD_MS ) );
-				while (contor_s < 15) //weit 15s
+				while (contor_s < 30) //weit 15s
 				{
 					PORTC |= (1 << PC3); //buzer on
 					_delay_ms(50);
 					PORTC &= ~(1 << PC3); //buzer off
-					_delay_ms(90);
+					_delay_ms(500);
 				}
 				//playFrequency( 150, 50); // armare tone
 				//OSGiveSema(&sema_senzor);
@@ -440,10 +440,10 @@ void TaskSemnale(void *pvParameters) // actiouni alarma
 		if (((PIND & (1 << PD6)) == 0) && (contor_s % 15 == 0)) //Lipsa tensiune alimentare
 		{
 			BUZER_PORT |= (1 << BUZER_PIN);
-			vTaskDelayUntil(&xLastWakeTime, (400 / portTICK_PERIOD_MS));
+			vTaskDelayUntil(&xLastWakeTime, (200 / portTICK_PERIOD_MS));
 			//_delay_ms(50);
 			BUZER_PORT &= (~(1 << BUZER_PIN));
-			vTaskDelayUntil(&xLastWakeTime, (600 / portTICK_PERIOD_MS));
+			vTaskDelayUntil(&xLastWakeTime, (100 / portTICK_PERIOD_MS));
 		}
 
 		//senzor activat = led armare trece pe intermitent
