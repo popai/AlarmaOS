@@ -204,7 +204,7 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 			gresit = 0;
 			Buzer_PassOK();
 			//playFrequency( 523, 150); // ok tone
-			if (GetArmat())
+			if (GetArmat() || GetAlarm())
 			{
 				ALARMOff();
 				ARMOff();
@@ -293,7 +293,6 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 				contor_m = 0;
 			}
 		}
-
 
 		/*
 		 PORTD |=  _BV(PORTD4);       // main (red PB5) LED on. Arduino LED on
@@ -399,11 +398,14 @@ static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
 				while (contor_s < 12)
 					vTaskDelayUntil(&xLastWakeTime, (500 / portTICK_PERIOD_MS));
 
-				ALARMOn();
-				contor_m = 0;
-				senzor_pull = 1;
-				martor = 2;
-				xSerialPrint_P(PSTR("Sirena pornita \r\n"));
+				if (GetArmat())
+				{
+					ALARMOn();
+					contor_m = 0;
+					senzor_pull = 1;
+					martor = 2;
+					xSerialPrint_P(PSTR("Sirena pornita \r\n"));
+				}
 			}
 		}
 
