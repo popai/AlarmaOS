@@ -470,14 +470,14 @@ void TaskSemnale(void *pvParameters) // actiouni alarma
 		if ((martor == 1) && (contor_s % 2 == 0))
 		{
 			ARMLED_PORT &= ~(1 << ARMLED_PIN);
-			vTaskDelayUntil(&xLastWakeTime, (200 / portTICK_PERIOD_MS));
+			vTaskDelayUntil(&xLastWakeTime, (60 / portTICK_PERIOD_MS));
 			ARMLED_PORT |= (1 << ARMLED_PIN);
 
 		}
 		else if ((martor == 2) && (contor_s % 2 == 0))
 		{
 			ARMLED_PORT &= ~(1 << ARMLED_PIN);
-			vTaskDelayUntil(&xLastWakeTime, (400 / portTICK_PERIOD_MS));
+			vTaskDelayUntil(&xLastWakeTime, (500 / portTICK_PERIOD_MS));
 			ARMLED_PORT |= (1 << ARMLED_PIN);
 		}
 
