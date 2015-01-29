@@ -22,7 +22,6 @@
 uint8_t armat = ON;
 uint8_t alarm = OFF;
 
-
 /**
  * @breaf start the alarm
  * and signal a led on bord
@@ -30,11 +29,9 @@ uint8_t alarm = OFF;
  */
 void ALARMOff()
 {
-	if (armat)
-	{
-		alarm = OFF;
-		ALARM_PORT &= (~(1 << ALARM_PIN));
-	}
+	alarm = OFF;
+	ALARM_PORT &= (~(1 << ALARM_PIN));
+
 }
 
 /**
@@ -44,9 +41,11 @@ void ALARMOff()
  */
 void ALARMOn()
 {
-	alarm = ON;
-	ALARM_PORT |= (1 << ALARM_PIN);
-
+	if (armat)
+	{
+		alarm = ON;
+		ALARM_PORT |= (1 << ALARM_PIN);
+	}
 }
 
 /**
@@ -76,7 +75,6 @@ void ARMOff()
 	//SENZOR_PINS &= (~(1 << SENZOR_PIN));
 }
 
-
 uint8_t GetArmat()
 {
 	return armat;
@@ -93,7 +91,6 @@ uint8_t GetAlarm()
  *
  * @param no parameter
  */
-
 
 void Buzer_PassOK()
 {
@@ -133,5 +130,4 @@ void Buzer_PassNotOK()
 	BUZER_PORT &= (~(1 << BUZER_PIN));
 
 }
-
 

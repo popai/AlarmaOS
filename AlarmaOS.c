@@ -201,7 +201,7 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 			gresit = 0;
 			Buzer_PassOK();
 			//playFrequency( 523, 150); // ok tone
-			if (GetArmat())
+			if (GetArmat() || GetAlarm())
 			{
 				ALARMOff();
 				ARMOff();
@@ -217,7 +217,7 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 #endif
 				//while (GetSeconds() - time_sst < 15);
 				//vTaskDelayUntil( &xLastWakeTime, ( 15000 / portTICK_PERIOD_MS ) );
-				while (contor_s < 30) //weit 15s
+				while (contor_s < 30) //weit 30s
 				{
 					PORTC |= (1 << PC3); //buzer on
 					_delay_ms(50);
@@ -395,13 +395,15 @@ static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
 				while (contor_s < 12)
 					vTaskDelayUntil(&xLastWakeTime, (500 / portTICK_PERIOD_MS));
 
-				ALARMOn();
-				contor_m = 0;
-				senzor_pull = 1;
-				martor = 2;
-				xSerialPrint_P(PSTR("Sirena pornita \r\n"));
+				if (GetArmat())
+				{
+					ALARMOn();
+					contor_m = 0;
+					senzor_pull = 1;
+					martor = 2;
+					xSerialPrint_P(PSTR("Sirena pornita \r\n"));
+				}
 			}
-
 		}
 
 		if ((contor_m == 2) && senzor_pull)
