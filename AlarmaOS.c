@@ -75,11 +75,11 @@ int main(void)
 			, NULL, 3, &xTasKeypad);
 	// */
 
-	xTaskCreate( TaskAlarma, (const portCHAR *)"Alarma"// senzor lent
+	xTaskCreate( TaskAlarma, (const portCHAR *)"Alarma"// setare stare alarma
 			, 100// Tested 9 free @ 208
 			, NULL, 3, &xTaskAlarma);
 	// */
-	xTaskCreate( TaskSenzorR, (const portCHAR *)"SenzorL"// senzor lent
+	xTaskCreate( TaskSenzorR, (const portCHAR *)"SenzorR"// senzor rapid
 			, 100// Tested 9 free @ 208
 			, NULL, 3, NULL);
 	// */
@@ -87,7 +87,7 @@ int main(void)
 			, 100// Tested 9 free @ 208
 			, NULL, 3, NULL);
 	// */
-	xTaskCreate( TaskSemnale, (const portCHAR *)"SenzorL"// senzor lent
+	xTaskCreate( TaskSemnale, (const portCHAR *)"Semnale"// semnale
 			, 100// Tested 9 free @ 208
 			, NULL, 3, NULL);
 	// */
@@ -454,14 +454,14 @@ void TaskSemnale(void *pvParameters) // actiouni alarma
 		if ((martor == 1) && (contor_s % 2 == 0))
 		{
 			ARMLED_PORT &= ~(1 << ARMLED_PIN);
-			vTaskDelayUntil(&xLastWakeTime, (200 / portTICK_PERIOD_MS));
+			vTaskDelayUntil(&xLastWakeTime, (60 / portTICK_PERIOD_MS));
 			ARMLED_PORT |= (1 << ARMLED_PIN);
 
 		}
 		else if ((martor == 2) && (contor_s % 2 == 0))
 		{
 			ARMLED_PORT &= ~(1 << ARMLED_PIN);
-			vTaskDelayUntil(&xLastWakeTime, (400 / portTICK_PERIOD_MS));
+			vTaskDelayUntil(&xLastWakeTime, (500 / portTICK_PERIOD_MS));
 			ARMLED_PORT |= (1 << ARMLED_PIN);
 		}
 
