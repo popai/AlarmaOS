@@ -40,11 +40,8 @@ void ALARMOff()
  */
 void ALARMOn()
 {
-	if (armat)
-	{
 		alarm = ON;
 		ALARM_PORT |= (1 << ALARM_PIN);
-	}
 }
 
 /**
