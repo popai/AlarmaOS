@@ -323,7 +323,7 @@ static void TaskSenzorR(void *pvParameters) // Main Green LED Flash
 	 point on xLastWakeTime is managed automatically by the vTaskDelayUntil()
 	 API function. */
 	xLastWakeTime = xTaskGetTickCount();
-	//uint8_t senzor_pull = 0;
+	uint8_t senzor_pull = 1;
 	//uint8_t time_mst = 0;
 	//DDRD |= ~_BV(DDD4);
 
@@ -342,21 +342,25 @@ static void TaskSenzorR(void *pvParameters) // Main Green LED Flash
 				xSerialPrint_P(PSTR("Sirena pornita \r\n"));
 			}
 		}
-		else if(!GetArmat() && (PIND & (1 << PD5)))
+		else if (!GetArmat() && (PIND & (1 << PD5)) && senzor_pull)
 		{
 			ALARMOn();
 			contor_m = 0;
-		}
-
-/*
-		//opresc sirena dupa 2min
-		if (contor_m == 2 && senzor_pull)
-		{
-			ALARMOff();
 			senzor_pull = 0;
-			xSerialPrint_P(PSTR("Sirena oprita \r\n"));
+			xSerialPrint_P(PSTR("Sirena pornita \r\n"));
 		}
-*/
+		else if ((PIND & (1 << PD5)) == 0)
+			senzor_pull = 1;
+
+		/*
+		 //opresc sirena dupa 2min
+		 if (contor_m == 2 && senzor_pull)
+		 {
+		 ALARMOff();
+		 senzor_pull = 0;
+		 xSerialPrint_P(PSTR("Sirena oprita \r\n"));
+		 }
+		 */
 #ifdef portHD44780_LCD
 		lcd_Locate (0, 0);
 		lcd_Printf_P(PSTR("Sys Tick:%7lu"), time(NULL));
@@ -413,14 +417,14 @@ static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
 				}
 			}
 		}
-/*
-		if ((contor_m == 2) && senzor_pull)
-		{
-			ALARMOff();
-			senzor_pull = 0;
-			xSerialPrint_P(PSTR("Sirena oprita \r\n"));
-		}
-*/
+		/*
+		 if ((contor_m == 2) && senzor_pull)
+		 {
+		 ALARMOff();
+		 senzor_pull = 0;
+		 xSerialPrint_P(PSTR("Sirena oprita \r\n"));
+		 }
+		 */
 		//daca sa pornit sirena ledul de armat trece pe intermitent
 #ifdef portHD44780_LCD
 		lcd_Locate (0, 0);
