@@ -136,7 +136,7 @@ static void TasKeypad(void *pvParameters) // Main Red LED Flash
 			i = 0;
 			xSerialPrint_P(PSTR("Anulat!\r\n"));
 		}
-		else if (i < 4)
+		else if (i < 4 && (keyCode != 10))
 		{
 			key[i] = keyCode;
 			xSerialPrintf_P(PSTR("key[%i] = %i \r\n"), i, keyCode);
