@@ -342,10 +342,12 @@ static void TaskSenzorR(void *pvParameters) // Main Green LED Flash
 				xSerialPrint_P(PSTR("Sirena pornita \r\n"));
 			}
 		}
-		else if (!GetArmat() && (PIND & (1 << PD5)) && senzor_pull)
+
+		if (GetArmat() && (PIND & (1 << PD5)) && senzor_pull)
 		{
 			ALARMOff();
 			ARMOff();
+			senzor_pull = 0;
 #ifdef DEBUG
 			xSerialPrint_P(PSTR("Dezarmat! \r\n"));
 #endif
