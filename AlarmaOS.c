@@ -32,9 +32,7 @@
 #include "lib/keypad/keypad.h"
 #include "lib/eeprom/eeprom.h"
 #include "lib/timer/timer.h"
-
-// Buzzer include file
-#include "lib/buzzer/Buzzer.h"
+#include "lib/sound/sound.h"
 
 #ifdef portHD44780_LCD
 /* LCD (Freetronics 16x2) interface include file. */
@@ -44,6 +42,12 @@
 /*-----------------------------------------------------------*/
 /* Create a handle for the serial port. */
 extern xComPortHandle xSerialPort;
+
+// Declare these in the main.c file...
+volatile uint8_t buzzerFinished;	// flag: 0 whilst playing
+const int8_t *buzzerSequence;
+uint8_t buzzerInitialized;
+
 
 /*Alarm variables*/
 static uint16_t pass_save = 255;
@@ -125,7 +129,7 @@ static void TasKeypad(void *pvParameters) // Main Red LED Flash
 	while (1)
 	{
 
-		vTaskDelayUntil(&xLastWakeTime, (200 / portTICK_PERIOD_MS));
+		vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
 
 		keyCode = GetKeyPressed(); //Get the keycode of pressed key
 		if (keyCode == 255)
@@ -222,9 +226,7 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 				//vTaskDelayUntil( &xLastWakeTime, ( 15000 / portTICK_PERIOD_MS ) );
 				while (contor_s < 30) //weit 15s
 				{
-					PORTC |= (1 << PC3); //buzer on
-					_delay_ms(50);
-					PORTC &= ~(1 << PC3); //buzer off
+					playFrequency( 5230, 100); // ok tone
 					_delay_ms(500);
 				}
 				//playFrequency( 150, 50); // armare tone
@@ -241,6 +243,7 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 
 			//If user enters 0000 as password it
 			//indicates a request to change password
+			playFrequency( 1500, 50); // armare tone
 
 #ifdef DEBUG
 			xSerialPrint_P(PSTR("Schimba parola \r\n"));
@@ -332,7 +335,7 @@ static void TaskSenzorR(void *pvParameters) // Main Green LED Flash
 		vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
 		if (GetArmat() && !GetAlarm())
 		{
-			if ((PIND & (1 << PD3)) || (PIND & (1 << PD4)))
+			if ((PIND & (1 << PD4)) || (PIND & (1 << PD5)))
 			{
 				xSerialPrint_P(PSTR("Senzor rapid activat \r\n"));
 				ALARMOn();
@@ -343,7 +346,7 @@ static void TaskSenzorR(void *pvParameters) // Main Green LED Flash
 			}
 		}
 
-		if (GetArmat() && (PIND & (1 << PD5)) && senzor_pull)
+		if (GetArmat() && (PINC & (1 << PC3)) && senzor_pull)
 		{
 			ALARMOff();
 			ARMOff();

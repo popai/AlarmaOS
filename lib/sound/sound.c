@@ -14,7 +14,7 @@
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 
-#include "Buzzer.h"
+#include "sound.h"
 
 
 

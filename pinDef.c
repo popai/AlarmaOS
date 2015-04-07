@@ -10,10 +10,10 @@
 
 void pinSetUp()
 {
-	DDRC  = 0b00001111; // PC0, PC1, PC2 out for keybord; PC3 out buzer keybord; PC4 and PC5 in pins DELL and DEBUG
-	PORTC = 0b11110000;
+	DDRC  = 0b00000111; // PC0, PC1, PC2 OUT for keybord; PC3 IN panick button; PC4 and PC5 IN pins DELL and DEBUG
+	PORTC = 0b11111000;
 
-	DDRB  = 0b00110000; // PB0, BP1, PB2, PB3 in for keybord; PB4 out for LED, PB5 alarma rapida
+	DDRB  = 0b00110000; // PB0, BP1, PB2, PB3 IN for keybord; PB4 OUT for LED, PB5 fast allarm
 	PORTB = 0b11001111;
 	//PORTB |= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3);
 

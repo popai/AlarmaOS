@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "lib/keypad/keypad.h"
+#include "lib/sound/sound.h"
 #include "password_manager.h"
 #include "user_input.h"
 #include "pinDef.h"
@@ -86,44 +87,20 @@ uint8_t GetAlarm()
  * 	on this functin init posrts, usart, timer amd...
  *
  * @param no parameter
+ * bach = "!T110 L8 a gafaeada c+adaeafa >aa>bac#ada c#adaeaf4";
+ * guminam = "!T160 L2 a1aa1age+ e1rd>cb-a4b-4 b-1rd>cb-4b-.a4b-4 b-rd.e.f a1b-g1f1 g1. rffe4d.ff1.";
+ * cmajor = "!T110 L16 cdefgab>cbagfedc";
+ *
  */
 
 void Buzer_PassOK()
 {
-	BUZER_PORT |= (1 << BUZER_PIN);
-	_delay_ms(50);
-	BUZER_PORT &= (~(1 << BUZER_PIN));
-	_delay_ms(50);
-	BUZER_PORT |= (1 << BUZER_PIN);
-	_delay_ms(50);
-	BUZER_PORT &= (~(1 << BUZER_PIN));
+	play("T240 L8 >ac#adaeaf4");
 }
 
 void Buzer_PassNotOK()
 {
-	BUZER_PORT |= (1 << BUZER_PIN);
-	_delay_ms(50);
-	BUZER_PORT &= (~(1 << BUZER_PIN));
-	_delay_ms(100);
-	BUZER_PORT |= (1 << BUZER_PIN);
-	_delay_ms(50);
-	BUZER_PORT &= (~(1 << BUZER_PIN));
-	_delay_ms(100);
-	BUZER_PORT |= (1 << BUZER_PIN);
-	_delay_ms(50);
-	BUZER_PORT &= (~(1 << BUZER_PIN));
-	_delay_ms(100);
-	BUZER_PORT |= (1 << BUZER_PIN);
-	_delay_ms(50);
-	BUZER_PORT &= (~(1 << BUZER_PIN));
-	_delay_ms(100);
-	BUZER_PORT |= (1 << BUZER_PIN);
-	_delay_ms(50);
-	BUZER_PORT &= (~(1 << BUZER_PIN));
-	_delay_ms(100);
-	BUZER_PORT |= (1 << BUZER_PIN);
-	_delay_ms(50);
-	BUZER_PORT &= (~(1 << BUZER_PIN));
+	play("L16 <a<a<a<a<a<a");
 
 }
 
