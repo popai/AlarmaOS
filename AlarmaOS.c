@@ -404,9 +404,10 @@ static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
 				contor_s = 0;
 				for (uint8_t n = 0; n < 15; ++n)
 				{
-					PORTC |= (1 << PC3); //buzer on
-					vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
-					PORTC &= ~(1 << PC3); //buzer off
+					//PORTC |= (1 << PC3); //buzer on
+					//vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
+					//PORTC &= ~(1 << PC3); //buzer off
+					playFrequency( 1500, 50);
 					vTaskDelayUntil(&xLastWakeTime, (90 / portTICK_PERIOD_MS));
 				}
 				//playFrequency( 1500, 50); // senzor activ tone
@@ -458,11 +459,7 @@ void TaskSemnale(void *pvParameters) // actiouni alarma
 		//Lipsa tensiune alimentare
 		if (((PIND & (1 << PD6)) == 0) && (contor_s % 15 == 0)) //Lipsa tensiune alimentare
 		{
-			BUZER_PORT |= (1 << BUZER_PIN);
-			vTaskDelayUntil(&xLastWakeTime, (200 / portTICK_PERIOD_MS));
-			//_delay_ms(50);
-			BUZER_PORT &= (~(1 << BUZER_PIN));
-			vTaskDelayUntil(&xLastWakeTime, (100 / portTICK_PERIOD_MS));
+			play("T240 L16 aa.bac#ada");
 		}
 
 		//senzor activat = led armare trece pe intermitent
