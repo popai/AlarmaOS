@@ -10,6 +10,9 @@
 #include <inttypes.h>
 #include <util/delay.h>
 
+#include "FreeRTOS.h"
+#include "task.h"
+
 #include "keypad.h"
 //#include "../timer/timer.h"
 
@@ -33,6 +36,12 @@
 uint8_t GetKeyPressed()
 {
 	//uint8_t getkb = 255;	//Indicate No key pressed
+	TickType_t xLastWakeTime;
+	/* The xLastWakeTime variable needs to be initialised with the current tick
+	 count.  Note that this is the only time we access this variable.  From this
+	 point on xLastWakeTime is managed automatically by the vTaskDelayUntil()
+	 API function. */
+	xLastWakeTime = xTaskGetTickCount();
 
 	PORTC |= (1 << PC1) | (1 << PC2);
 	PORTC &= ~(1 << PC0);
@@ -43,6 +52,8 @@ uint8_t GetKeyPressed()
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
 		_delay_ms(50);
+		while(!(PINB & (1 << PB3)))
+			vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
 		return 10;
 	}
 
@@ -52,6 +63,9 @@ uint8_t GetKeyPressed()
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
 		_delay_ms(50);
+		while(!(PINB & (1 << PB2)))
+			vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
+
 		return 7;
 	}
 
@@ -61,6 +75,9 @@ uint8_t GetKeyPressed()
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
 		_delay_ms(50);
+		while(!(PINB & (1 << PB1)))
+			vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
+
 		return 4;
 	}
 
@@ -70,6 +87,9 @@ uint8_t GetKeyPressed()
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
 		_delay_ms(50);
+		while(!(PINB & (1 << PB0)))
+			vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
+
 		return 1;
 	}
 
@@ -82,6 +102,9 @@ uint8_t GetKeyPressed()
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
 		_delay_ms(50);
+		while(!(PINB & (1 << PB3)))
+			vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
+
 		return 0;
 	}
 
@@ -91,6 +114,9 @@ uint8_t GetKeyPressed()
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
 		_delay_ms(50);
+		while(!(PINB & (1 << PB2)))
+			vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
+
 		return 8;
 	}
 
@@ -100,6 +126,9 @@ uint8_t GetKeyPressed()
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
 		_delay_ms(50);
+		while(!(PINB & (1 << PB1)))
+			vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
+
 		return 5;
 	}
 	if (!(PINB & (1 << PB0)))
@@ -108,6 +137,9 @@ uint8_t GetKeyPressed()
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
 		_delay_ms(50);
+		while(!(PINB & (1 << PB0)))
+			vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
+
 		return 2;
 	}
 
@@ -120,6 +152,9 @@ uint8_t GetKeyPressed()
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
 		_delay_ms(50);
+		while(!(PINB & (1 << PB3)))
+			vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
+
 		return 11; //getkb = 11;
 	}
 	if (!(PINB & (1 << PB2)))
@@ -128,6 +163,9 @@ uint8_t GetKeyPressed()
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
 		_delay_ms(50);
+		while(!(PINB & (1 << PB2)))
+			vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
+
 		return 9;
 	}
 	if (!(PINB & (1 << PB1)))
@@ -136,6 +174,9 @@ uint8_t GetKeyPressed()
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
 		_delay_ms(50);
+		while(!(PINB & (1 << PB1)))
+			vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
+
 		return 6;
 	}
 	if (!(PINB & (1 << PB0)))
@@ -144,6 +185,9 @@ uint8_t GetKeyPressed()
 		_delay_ms(50);
 		PORTC &= ~(1 << PC3); //buzer off
 		_delay_ms(50);
+		while(!(PINB & (1 << PB0)))
+			vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
+
 		return 3;
 	}
 
