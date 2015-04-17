@@ -459,7 +459,7 @@ void TaskSemnale(void *pvParameters) // actiouni alarma
 		//Lipsa tensiune alimentare
 		if (((PIND & (1 << PD6)) == 0) && (contor_s % 15 == 0)) //Lipsa tensiune alimentare
 		{
-			play("T240 L16 aa.bac#ada");
+			play(">ARR>ARR>A");
 		}
 
 		//senzor activat = led armare trece pe intermitent
