@@ -194,30 +194,3 @@ uint8_t GetKeyPressed()
 	return 255; //Indicate No key pressed
 }
 
-/*
- uint8_t GetKeyPressed()
- {
- uint8_t r,c;
- UWriteString("key");
-
- KEYPAD_PORT|= 0X0F;
-
- for(c=0;c<4;c++)
- {
- KEYPAD_DDR &= ~(0XFF);
-
- KEYPAD_DDR|=(0X80>>c);
- for(r=0;r<3;r++)
- {
- if(!(KEYPAD_PIN & (0X08>>r)))
- {
- return (r*3+c);
- UWriteString("pres?");
- _delay_ms(10);
- }
- }
- }
- return 0XFF;//Indicate No key pressed
- }
-
- */
