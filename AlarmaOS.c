@@ -125,7 +125,7 @@ static void TasKeypad(void *pvParameters) // Main Red LED Flash
 	while (1)
 	{
 
-		vTaskDelayUntil(&xLastWakeTime, (200 / portTICK_PERIOD_MS));
+		vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
 
 		keyCode = GetKeyPressed(); //Get the keycode of pressed key
 		if (keyCode == 255)
