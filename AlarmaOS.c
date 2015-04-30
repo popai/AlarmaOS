@@ -44,10 +44,9 @@
 extern xComPortHandle xSerialPort;
 
 // Declare these in the main.c file...
-volatile uint8_t buzzerFinished;	// flag: 0 whilst playing
+volatile uint8_t buzzerFinished; // flag: 0 whilst playing
 const int8_t *buzzerSequence;
 uint8_t buzzerInitialized;
-
 
 /*Alarm variables*/
 static uint16_t pass_save = 255;
@@ -110,7 +109,7 @@ int main(void)
 
 /*-----------------------------------------------------------*/
 
-static void TasKeypad(void *pvParameters) // Main Red LED Flash
+static void TasKeypad(void *pvParameters)
 {
 	(void) pvParameters;
 	;
@@ -174,7 +173,7 @@ static void TasKeypad(void *pvParameters) // Main Red LED Flash
 }
 
 /*-----------------------------------------------------------*/
-static void TaskAlarma(void *pvParameters) // Main Green LED Flash
+static void TaskAlarma(void *pvParameters)
 {
 	(void) pvParameters;
 	;
@@ -226,7 +225,7 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 				//vTaskDelayUntil( &xLastWakeTime, ( 15000 / portTICK_PERIOD_MS ) );
 				while (contor_s < 30) //weit 15s
 				{
-					playFrequency( 5230, 100); // ok tone
+					playFrequency(5230, 100); // ok tone
 					_delay_ms(500);
 				}
 				//playFrequency( 150, 50); // armare tone
@@ -243,7 +242,7 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 
 			//If user enters 0000 as password it
 			//indicates a request to change password
-			playFrequency( 1500, 50); // armare tone
+			playFrequency(1500, 50); // armare tone
 
 #ifdef DEBUG
 			xSerialPrint_P(PSTR("Schimba parola \r\n"));
@@ -316,7 +315,7 @@ static void TaskAlarma(void *pvParameters) // Main Green LED Flash
 }
 
 /*-----------------------------------------------------------*/
-static void TaskSenzorR(void *pvParameters) // Main Green LED Flash
+static void TaskSenzorR(void *pvParameters)
 {
 	(void) pvParameters;
 	;
@@ -346,16 +345,16 @@ static void TaskSenzorR(void *pvParameters) // Main Green LED Flash
 			}
 		}
 
-		if (GetArmat() && (PINC & (1 << PC3)) && senzor_pull)
+		else if (!GetArmat() && (PINC & (1 << PC3)) && senzor_pull)
 		{
-			ALARMOff();
-			ARMOff();
+			ALARMOn();
+			contor_m = 0;
 			senzor_pull = 0;
 #ifdef DEBUG
-			xSerialPrint_P(PSTR("Dezarmat! \r\n"));
+			xSerialPrint_P(PSTR("Sirena pornita BP! \r\n"));
 #endif
 		}
-		else if ((PIND & (1 << PD5)) == 0)
+		else if ((PIND & (1 << PC3)) == 0)
 			senzor_pull = 1;
 
 		/*
@@ -378,7 +377,7 @@ static void TaskSenzorR(void *pvParameters) // Main Green LED Flash
 }
 
 /*-----------------------------------------------------------*/
-static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
+static void TaskSenzorL(void *pvParameters)
 {
 	(void) pvParameters;
 	;
@@ -407,7 +406,7 @@ static void TaskSenzorL(void *pvParameters) // Main Green LED Flash
 					//PORTC |= (1 << PC3); //buzer on
 					//vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
 					//PORTC &= ~(1 << PC3); //buzer off
-					playFrequency( 1500, 50);
+					playFrequency(1500, 50);
 					vTaskDelayUntil(&xLastWakeTime, (90 / portTICK_PERIOD_MS));
 				}
 				//playFrequency( 1500, 50); // senzor activ tone
