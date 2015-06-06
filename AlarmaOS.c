@@ -354,7 +354,7 @@ static void TaskSenzorR(void *pvParameters)
 			xSerialPrint_P(PSTR("Sirena pornita BP! \r\n"));
 #endif
 		}
-		else if ((PIND & (1 << PC3)) == 0)
+		else if ((PINC & (1 << PC3)) == 0)
 			senzor_pull = 1;
 
 		/*
