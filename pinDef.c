@@ -17,9 +17,9 @@ void pinSetUp()
 	PORTB = 0b11001111;
 	//PORTB |= (1<<PB0) | (1<<PB1) | (1<<PB2) | (1<<PB3);
 
-	DDRD  = 0b10001010; // PD2 (INT0) senzor alarma dezactivare cu parola, PD3 OUT sunet.
+	DDRD  = 0b10001010; // PD2 senzor intarziat PD4, PD5 senzori rapizi, PD3 OUT sunet.
 	PORTD = 0b01110101;
-	PORTD &= ~(1 << PD6);
+	//PORTD &= ~(1 << PD6);
 	/*
 	//setup External Interrupt INT0
 	cli();		// disable global interrupts

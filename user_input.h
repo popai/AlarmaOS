@@ -28,8 +28,7 @@ void ARMOn();
 void ARMOff();
 void Buzer_PassOK();
 void Buzer_PassNotOK();
-uint8_t GetArmat();
-uint8_t GetAlarm();
-void SystemInit();
+//uint8_t GetArmat();
+//uint8_t GetAlarm();
 
 #endif

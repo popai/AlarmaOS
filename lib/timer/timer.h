@@ -8,9 +8,9 @@
 #ifndef TIMER_H_
 #define TIMER_H_
 
-volatile uint8_t contor_s ;
-volatile uint8_t contor_m ;
-volatile uint8_t senzor_pull;
+extern volatile uint8_t contor_s ;
+extern volatile uint8_t contor_m ;
+//extern volatile uint8_t senzor_pull;
 
 void Timer1_Init(void);
 void Timer0_Init(void);

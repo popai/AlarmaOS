@@ -62,7 +62,7 @@ extern "C" {
 #define DIV_BY_10		(1 << 15)		// frequency bit that indicates Hz/10
 
 #define BUZZER_DDR		DDRD
-#define BUZZER			(1 << PORTD3)	// Danger Shield buzzer is on D3
+#define BUZZER			(1 << PORTD3)	// buzzer is on PD3
 
 
 //*******************************************************

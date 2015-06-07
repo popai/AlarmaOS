@@ -7,18 +7,11 @@
  */
 
 #include <avr/io.h>
-#include <inttypes.h>
-#include <util/delay.h>
-#include<stdlib.h>
-#include <string.h>
 
-#include "lib/keypad/keypad.h"
 #include "lib/sound/sound.h"
-#include "password_manager.h"
 #include "user_input.h"
 #include "pinDef.h"
 
-#define	DEBUG	1
 
 uint8_t armat = ON;
 uint8_t alarm = OFF;
@@ -71,7 +64,7 @@ void ARMOff()
 	//eeprom_update_byte((uint8_t*) 3, armat);
 	//SENZOR_PINS &= (~(1 << SENZOR_PIN));
 }
-
+/*
 uint8_t GetArmat()
 {
 	return armat;
@@ -81,7 +74,7 @@ uint8_t GetAlarm()
 {
 	return alarm;
 }
-
+*/
 /**
  * @breaf System initialization function
  * 	on this functin init posrts, usart, timer amd...

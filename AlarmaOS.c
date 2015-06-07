@@ -43,15 +43,19 @@
 /* Create a handle for the serial port. */
 extern xComPortHandle xSerialPort;
 
-// Declare these in the main.c file...
+// Declare Buzezer variables...
 volatile uint8_t buzzerFinished; // flag: 0 whilst playing
 const int8_t *buzzerSequence;
-uint8_t buzzerInitialized;
+//uint8_t buzzerInitialized;
+
 
 /*Alarm variables*/
 static uint16_t pass_save = 255;
 static uint16_t password = 255;
 static uint8_t martor = 0;
+extern uint8_t armat;
+extern uint8_t alarm;
+
 
 static void TasKeypad(void *pvParameters); // keibord imput
 static void TaskSenzorL(void *pvParameters); // senzor intarziat
@@ -59,7 +63,7 @@ static void TaskSenzorR(void *pvParameters); // senzor instant
 static void TaskAlarma(void *pvParameters); // actiouni alarma
 static void TaskSemnale(void *pvParameters); // actiouni alarma
 
-void SystemInit();
+static void SystemInit();
 
 static TaskHandle_t xTasKeypad = NULL, xTaskAlarma = NULL;
 
@@ -74,24 +78,24 @@ int main(void)
 	SystemInit();
 
 	xTaskCreate( TasKeypad, (const portCHAR *)"Keypad" // citire tastatura
-			, 100// Tested 9 free @ 208
+			, 120// Tested 9 free @ 208
 			, NULL, 3, &xTasKeypad);
 	// */
 
 	xTaskCreate( TaskAlarma, (const portCHAR *)"Alarma"// setare stare alarma
-			, 100// Tested 9 free @ 208
+			, 120// Tested 9 free @ 208
 			, NULL, 3, &xTaskAlarma);
 	// */
 	xTaskCreate( TaskSenzorR, (const portCHAR *)"SenzorR"// senzor rapid
-			, 100// Tested 9 free @ 208
+			, 120// Tested 9 free @ 208
 			, NULL, 3, NULL);
 	// */
 	xTaskCreate( TaskSenzorL, (const portCHAR *)"SenzorL"// senzor lent
-			, 100// Tested 9 free @ 208
+			, 120// Tested 9 free @ 208
 			, NULL, 3, NULL);
 	// */
 	xTaskCreate( TaskSemnale, (const portCHAR *)"Semnale"// semnale
-			, 100// Tested 9 free @ 208
+			, 120// Tested 9 free @ 208
 			, NULL, 3, NULL);
 	// */
 
@@ -207,7 +211,7 @@ static void TaskAlarma(void *pvParameters)
 			gresit = 0;
 			Buzer_PassOK();
 			//playFrequency( 523, 150); // ok tone
-			if (GetArmat() || GetAlarm())
+			if (armat || alarm)
 			{
 				ALARMOff();
 				ARMOff();
@@ -286,7 +290,7 @@ static void TaskAlarma(void *pvParameters)
 			++gresit;
 			Buzer_PassNotOK();
 			//playFrequency( 2500, 500); // notOK tone
-			if ((gresit == 4) && GetArmat())
+			if ((gresit == 4) && armat)
 			{
 				//ARMOn();
 				ALARMOn();
@@ -332,7 +336,7 @@ static void TaskSenzorR(void *pvParameters)
 	while (1)
 	{
 		vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
-		if (GetArmat() && !GetAlarm())
+		if (armat && !alarm)
 		{
 			if ((PIND & (1 << PD4)) || (PIND & (1 << PD5)))
 			{
@@ -345,7 +349,7 @@ static void TaskSenzorR(void *pvParameters)
 			}
 		}
 
-		else if (!GetArmat() && (PINC & (1 << PC3)) && senzor_pull)
+		else if (!armat && (PINC & (1 << PC3)) && senzor_pull)
 		{
 			ALARMOn();
 			contor_m = 0;
@@ -394,7 +398,7 @@ static void TaskSenzorL(void *pvParameters)
 	while (1)
 	{
 		vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
-		if (GetArmat() && !GetAlarm())
+		if (armat && !alarm)
 		{
 
 			if ((SENZOR_PINS & (1 << SENZOR_PIN))) //(PIND & (1 << PD2)) == 1)
@@ -413,7 +417,7 @@ static void TaskSenzorL(void *pvParameters)
 				while (contor_s < 12)
 					vTaskDelayUntil(&xLastWakeTime, (500 / portTICK_PERIOD_MS));
 
-				if (GetArmat())
+				if (armat)
 				{
 					ALARMOn();
 					contor_m = 0;
@@ -423,15 +427,6 @@ static void TaskSenzorL(void *pvParameters)
 				}
 			}
 		}
-		/*
-		 if ((contor_m == 2) && senzor_pull)
-		 {
-		 ALARMOff();
-		 senzor_pull = 0;
-		 xSerialPrint_P(PSTR("Sirena oprita \r\n"));
-		 }
-		 */
-		//daca sa pornit sirena ledul de armat trece pe intermitent
 #ifdef portHD44780_LCD
 		lcd_Locate (0, 0);
 		lcd_Printf_P(PSTR("Sys Tick:%7lu"), time(NULL));
@@ -442,7 +437,7 @@ static void TaskSenzorL(void *pvParameters)
 	}
 }
 
-void TaskSemnale(void *pvParameters) // actiouni alarma
+static void TaskSemnale(void *pvParameters) // actiouni alarma
 {
 	(void) pvParameters;
 	;
@@ -476,13 +471,13 @@ void TaskSemnale(void *pvParameters) // actiouni alarma
 			ARMLED_PORT |= (1 << ARMLED_PIN);
 		}
 
-		if (!GetArmat())
+		if (!armat)
 		{
 			martor = 0;
 			ARMLED_PORT &= ~(1 << ARMLED_PIN);
 		}
 		//opresc sirena dupa 2min
-		if (contor_m == 2 && GetAlarm())
+		if (contor_m == 2 && alarm)
 		{
 			ALARMOff();
 			xSerialPrint_P(PSTR("Sirena oprita \r\n"));
@@ -492,7 +487,7 @@ void TaskSemnale(void *pvParameters) // actiouni alarma
 }
 
 /*-----------------------------------------------------------*/
-void SystemInit()
+static void SystemInit()
 {
 	//wdt_disable();
 	// turn on the serial port for debugging or for other USART reasons.

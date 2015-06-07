@@ -36,7 +36,7 @@
 // Declare these in the main.c file...
 extern volatile uint8_t buzzerFinished;	// flag: 0 whilst playing
 extern const int8_t *buzzerSequence;
-extern uint8_t buzzerInitialized;
+//extern uint8_t buzzerInitialized;
 
 
 //*******************************************************

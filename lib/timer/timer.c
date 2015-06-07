@@ -15,6 +15,10 @@ volatile uint8_t seconds;
 volatile uint8_t minutes;
 volatile uint8_t houers;
 
+volatile uint8_t contor_s ;
+volatile uint8_t contor_m ;
+//volatile uint8_t senzor_pull;
+
 /**
  * @file timer.c
  *
