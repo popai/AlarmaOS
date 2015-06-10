@@ -78,24 +78,24 @@ int main(void)
 	SystemInit();
 
 	xTaskCreate( TasKeypad, (const portCHAR *)"Keypad" // citire tastatura
-			, 120// Tested 9 free @ 208
+			, 200// Tested 9 free @ 184
 			, NULL, 3, &xTasKeypad);
 	// */
 
 	xTaskCreate( TaskAlarma, (const portCHAR *)"Alarma"// setare stare alarma
-			, 120// Tested 9 free @ 208
+			, 200// Tested 9 free @ 184
 			, NULL, 3, &xTaskAlarma);
 	// */
 	xTaskCreate( TaskSenzorR, (const portCHAR *)"SenzorR"// senzor rapid
-			, 120// Tested 9 free @ 208
+			, 200// Tested 9 free @ 184
 			, NULL, 3, NULL);
 	// */
 	xTaskCreate( TaskSenzorL, (const portCHAR *)"SenzorL"// senzor lent
-			, 120// Tested 9 free @ 208
+			, 200// Tested 9 free @ 184
 			, NULL, 3, NULL);
 	// */
 	xTaskCreate( TaskSemnale, (const portCHAR *)"Semnale"// semnale
-			, 120// Tested 9 free @ 208
+			, 200// Tested 9 free @ 184
 			, NULL, 3, NULL);
 	// */
 
@@ -451,24 +451,31 @@ static void TaskSemnale(void *pvParameters) // actiouni alarma
 	{
 		vTaskDelayUntil(&xLastWakeTime, (50 / portTICK_PERIOD_MS));
 		//Lipsa tensiune alimentare
-		if (((PIND & (1 << PD6)) == 0) && (contor_s % 15 == 0)) //Lipsa tensiune alimentare
+		if (((PIND & (1 << PD6)) == 0) && (contor_s % 20 == 15))
 		{
-			play(">ARR>ARR>A");
+			//play(">ARR>ARR>A");
+			playFrequency(3000, 50);
+			//vTaskDelayUntil(&xLastWakeTime, (1000 / portTICK_PERIOD_MS));
+
 		}
 
 		//senzor activat = led armare trece pe intermitent
 		if ((martor == 1) && (contor_s % 2 == 0))
 		{
-			ARMLED_PORT &= ~(1 << ARMLED_PIN);
+			//ARMLED_PORT &= ~(1 << ARMLED_PIN);
+			ARMLED_PORT = PINB ^ (1 << ARMLED_PIN);
 			vTaskDelayUntil(&xLastWakeTime, (60 / portTICK_PERIOD_MS));
-			ARMLED_PORT |= (1 << ARMLED_PIN);
+			//ARMLED_PORT |= (1 << ARMLED_PIN);
+
 
 		}
 		else if ((martor == 2) && (contor_s % 2 == 0))
 		{
-			ARMLED_PORT &= ~(1 << ARMLED_PIN);
+			//ARMLED_PORT &= ~(1 << ARMLED_PIN);
+			ARMLED_PORT = PINB ^ (1 << ARMLED_PIN);
 			vTaskDelayUntil(&xLastWakeTime, (500 / portTICK_PERIOD_MS));
-			ARMLED_PORT |= (1 << ARMLED_PIN);
+			//ARMLED_PORT |= (1 << ARMLED_PIN);
+
 		}
 
 		if (!armat)
