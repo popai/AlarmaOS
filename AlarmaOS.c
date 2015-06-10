@@ -48,14 +48,12 @@ volatile uint8_t buzzerFinished; // flag: 0 whilst playing
 const int8_t *buzzerSequence;
 //uint8_t buzzerInitialized;
 
-
 /*Alarm variables*/
 static uint16_t pass_save = 255;
 static uint16_t password = 255;
 static uint8_t martor = 0;
 extern uint8_t armat;
 extern uint8_t alarm;
-
 
 static void TasKeypad(void *pvParameters); // keibord imput
 static void TaskSenzorL(void *pvParameters); // senzor intarziat
@@ -329,7 +327,7 @@ static void TaskSenzorR(void *pvParameters)
 	 point on xLastWakeTime is managed automatically by the vTaskDelayUntil()
 	 API function. */
 	xLastWakeTime = xTaskGetTickCount();
-	uint8_t senzor_pull = 1;
+	//uint8_t senzor_pull = 1;
 	//uint8_t time_mst = 0;
 	//DDRD |= ~_BV(DDD4);
 
@@ -349,17 +347,20 @@ static void TaskSenzorR(void *pvParameters)
 			}
 		}
 
-		else if (!armat && (PINC & (1 << PC3)) && senzor_pull)
+		else if (!armat && !alarm)
 		{
-			ALARMOn();
-			contor_m = 0;
-			senzor_pull = 0;
+			if (PINC & (1 << PC3))	//Buton panica
+			{
+				ALARMOn();
+				contor_m = 0;
+				//senzor_pull = 0;
 #ifdef DEBUG
-			xSerialPrint_P(PSTR("Sirena pornita BP! \r\n"));
+				xSerialPrint_P(PSTR("Sirena pornita BP! \r\n"));
 #endif
+			}
 		}
-		else if ((PINC & (1 << PC3)) == 0)
-			senzor_pull = 1;
+		//else if ((PINC & (1 << PC3)) == 0)
+			//senzor_pull = 1;
 
 		/*
 		 //opresc sirena dupa 2min
@@ -393,7 +394,7 @@ static void TaskSenzorL(void *pvParameters)
 	xLastWakeTime = xTaskGetTickCount();
 
 	//DDRD |= _BV(DDD4);
-	uint8_t senzor_pull = 0;
+	//uint8_t senzor_pull = 0;
 
 	while (1)
 	{
@@ -421,7 +422,7 @@ static void TaskSenzorL(void *pvParameters)
 				{
 					ALARMOn();
 					contor_m = 0;
-					senzor_pull = 1;
+					//senzor_pull = 1;
 					martor = 2;
 					xSerialPrint_P(PSTR("Sirena pornita \r\n"));
 				}
@@ -462,19 +463,18 @@ static void TaskSemnale(void *pvParameters) // actiouni alarma
 		//senzor activat = led armare trece pe intermitent
 		if ((martor == 1) && (contor_s % 2 == 0))
 		{
-			//ARMLED_PORT &= ~(1 << ARMLED_PIN);
-			ARMLED_PORT = PINB ^ (1 << ARMLED_PIN);
+			ARMLED_PORT &= ~(1 << ARMLED_PIN);
+			//ARMLED_PORT = PINB ^ (1 << ARMLED_PIN);
 			vTaskDelayUntil(&xLastWakeTime, (60 / portTICK_PERIOD_MS));
-			//ARMLED_PORT |= (1 << ARMLED_PIN);
-
+			ARMLED_PORT |= (1 << ARMLED_PIN);
 
 		}
 		else if ((martor == 2) && (contor_s % 2 == 0))
 		{
-			//ARMLED_PORT &= ~(1 << ARMLED_PIN);
-			ARMLED_PORT = PINB ^ (1 << ARMLED_PIN);
+			ARMLED_PORT &= ~(1 << ARMLED_PIN);
+			//ARMLED_PORT = PINB ^ (1 << ARMLED_PIN);
 			vTaskDelayUntil(&xLastWakeTime, (500 / portTICK_PERIOD_MS));
-			//ARMLED_PORT |= (1 << ARMLED_PIN);
+			ARMLED_PORT |= (1 << ARMLED_PIN);
 
 		}
 
